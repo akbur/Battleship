@@ -1,17 +1,15 @@
+
+var gridSize = 10;
+var placingShip = false;
 setupGame();
+shipClickHandler();
 
 
 function setupGame() {
 	createGrid();
-//	playerTurn();
 }
 
-
-//NEED TO CHANGE HOVER DEPENDING ON WHAT ACTION
-//MEANING TRYING TO PLACE SHIP, TRYING TO HIT
-
 function createGrid() {
-	var gridSize = 10;
 	var gridDiv = document.querySelectorAll('.grid-container');
   for (var grid = 0; grid < gridDiv.length; grid++) {
 		for (var i = gridSize; i >= 1; i--) {
@@ -26,9 +24,7 @@ function createGrid() {
 	}
 }
 
-//remember to change function to get either human or enemy
-//currently works just for the top grid
-//also possibly add mouse event?
+//remember to change function to get either human or enemy grid
 function getCell(x , y) {
 	var cells = document.getElementsByClassName('grid-cell');
 	for (var i = 0; i < cells.length; i++) {
@@ -56,6 +52,15 @@ function getAdjacentCell(cell, direction) {
 	return getCell(x, y);
 }
 
+function forEachCell(callback){
+	for (var x = 1; x <= gridSize; x++){
+		for (var y = 1; y <= gridSize; y++){
+			var cell = getCell(x,y);
+			callback(cell);
+		}
+	}
+}
+
 function cellHasShip(cell) {
 	cell.className += " ship";
 }
@@ -69,7 +74,6 @@ function cellHit(cell) {
 }
 
 function cellMiss(cell) {
-
 	cell.className += " miss";
 
 }
@@ -84,12 +88,42 @@ function playerPlaceShip(cell, shipSize, flipped) {
 	}
 }
 
+//=====================WORKING ON CLICK HANDLERS==================
+
+//Currently only logs text to the console
+function shipClickHandler() {
+	var shipButton = document.getElementById('ship');
+	shipButton.addEventListener("click", function() {
+		console.log("ship clicked!");
+		addCellEventListeners();
+	});
+}
+
+function addCellEventListeners() {
+	forEachCell(function(cell){
+		cell.addEventListener("mouseover", mouseoverText);
+		cell.addEventListener("click", tempPlaceShip);
+	});
+}
 
 //----------TEMPORARY-------------------------------
 
-//Need to write a function for looping through every cell
-//and doing something to it.
-
+function mouseoverText() {
+	console.log("mousing over!");
+}
+function clickText() {
+	console.log("clicking!")
+}
+function tempPlaceShip(){
+	console.log("Ship has been placed!");
+	removeCellEventListeners();
+}
+function removeCellEventListeners(){
+	forEachCell(function(cell){
+		cell.removeEventListener("mouseover", mouseoverText);
+		cell.removeEventListener("click", tempPlaceShip);
+	});
+}
 
 function playerPlaceShips() {
 
@@ -97,9 +131,6 @@ function playerPlaceShips() {
 	playerPlaceShip(shipCell1, 2, "h");
 	var shipCell2 = getCell (1, 2);
 	playerPlaceShip(shipCell2, 3, 'h');
-
-
-
 
 }
 playerPlaceShips();
