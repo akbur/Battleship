@@ -1,0 +1,48 @@
+//Text Based Battleship Game Plan
+
+//Gameboard is generated
+
+//Player Places ships
+//Ship name: size
+	//Carrier: 5
+	//Battleship: 4
+	//Submarine: 3
+	//Destroyer: 3
+	//Patrolboat: 2
+//Can rotate ships
+
+//Computer randomly places ship
+//Game begins
+
+//Player turn 
+//Player chooses a space to target
+	//If player misses, marked as miss
+	//If player hits, marked as hit
+		//If final space of battleship hit, boat sinks
+			//If ship sinks, player wins
+
+//Computer turn
+//Computer randomly chooses a blank space to target
+//If misses, mark as hit
+//if hit & not sunk, computer guesses adjacent space on boat
+//If reaches the end in one direction and still not sunk, go to other end
+//if hit final space, sink
+	//if final ship sink, player wins
+
+	
+	/*
+	if (shipType = "carrier") {
+		shipSize = 5;
+	} else if (shipType = "battleship") {
+		shipSize = 4;
+	} else if (shipType = "submarine") {
+		shipSize = 3;
+	} else if (shipType = "destroyer") {
+		shipSize = 3;
+	} else if (shipType = "patrol") {
+		shipSize = 2;
+	} else {
+		console.log("Error: Wrong shipType.");
+	}
+	*/
+

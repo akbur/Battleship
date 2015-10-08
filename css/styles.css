@@ -1,0 +1,45 @@
+h1, h2 {
+	font-family: Helvetica;
+	text-align: center;
+}
+
+body {
+	background-color: CornflowerBlue;
+}
+
+.grid-container {
+	float: left;
+	width: 375px;
+	height: 375px;
+	padding: 100px;
+}
+
+
+/* GRID CELL COLORS FOR DIFF STATES */
+
+.grid-cell {
+	background-color:white;
+	height: 35px;
+	width: 35px;
+	float: left;
+	border: 1px solid black;
+}
+
+.grid-cell:hover {
+	background-color: lightGray;
+}
+
+.ship {
+	background-color: DarkOliveGreen;
+}
+
+.hit {
+	background-color:red;
+}
+.miss {
+	background-color:darkGray;
+}
+
+.sank {
+	background-color:black;
+}
