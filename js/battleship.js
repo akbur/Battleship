@@ -5,8 +5,9 @@ var shipDirection = 'horizontal';
 var currentShipName, currentShipSize, currentCell;
 
 setupGame();
-playerShipPlacement();
 computerShipPlacement();
+playerShipPlacement();
+
 
 /***************** SETUP *******************************/
 
@@ -41,7 +42,17 @@ function getPlayerCell(x , y) {
 			return cells[i];
 		}
 	}
-};
+}
+
+function getComputerCell(x, y) {
+	var ComputerGridDiv = document.getElementsByClassName('grid-container')[1];
+	var cells = ComputerGridDiv.children;
+	for (var i = 0; i <= cells.length; i++) {
+		if (cells[i].dataset.x == x && cells[i].dataset.y == y) {
+			return cells[i];
+		}
+	}
+}
 
 function getCellFromEvent() {
 	var x = this.dataset.x;
@@ -55,7 +66,7 @@ function getCellClickHandler() {
 	});
 }
 
-function getAdjacentCell() {
+function getAdjacentCell(user) {
 	var cell = currentCell;
 	var x = parseInt(cell.dataset.x);
 	var y = parseInt(cell.dataset.y);
@@ -66,11 +77,15 @@ function getAdjacentCell() {
 		x += 1;
 	}
 
-	var adjacentCell = getPlayerCell(x, y);
+	if (user === "player") {
+		var adjacentCell = getPlayerCell(x, y);
+	} else if (user === "computer") {
+		var adjacentCell = getComputerCell(x, y);
+	}
 	return adjacentCell;
 }
 
-/********************     SHIP PLACEMENT    *************************/
+/********************     READY SHIP BUTTONS   *************************/
 
 function addShipButtons() {
 	var shipButtonDiv = document.getElementById('ship-buttons');
@@ -135,16 +150,10 @@ function getShipClickHandler() {
 function shipClickHandler() {
 	var shipButtons = document.getElementsByClassName('ship-button');
 	for (var i = 0; i < shipButtons.length; i++){
-		console.log(shipButtons[i]);
 		shipButtons[i].addEventListener("click", function() {
 			addCellEventListeners();
 		});
 	}
-}
-
-function playerShipPlacement() {
-	getShipClickHandler();
-	shipClickHandler();
 }
 
 function rotateShip() {
@@ -155,33 +164,31 @@ function rotateShip() {
 	}
 }
 
-function markAdjacentCell(){
-	currentCell = getAdjacentCell();
-	cellHasShip();
+/******************* PLAYER PLACE SHIP *********************/
+
+function playerShipPlacement() {
+	getShipClickHandler();
+	shipClickHandler();
 }
 
-function playerPlaceShip() {
-	cellHasShip();
-	var shipSize = currentShipSize;
-	for (var i = 1; i < shipSize; i++) {
-		markAdjacentCell();
+function markAdjacentCell(user){
+	currentCell = getAdjacentCell(user);
+	if (user === 'player') {
+		cellHasPlayerShip();
+	} else if (user ==='computer') {
+		cellHasComputerShip();
 	}
 }
 
-function addCellEventListeners() {
-	forEachCell(function(cell){
-		cell.addEventListener("mouseover", mouseoverText);
-		cell.addEventListener("click", statusPlaceShips);
-	});
-}
-function removeCellEventListeners(){
-	forEachCell(function(cell){
-		cell.removeEventListener("mouseover", mouseoverText);
-		cell.removeEventListener("click", statusPlaceShips);
-	});
+function playerPlaceShip() {
+	cellHasPlayerShip();
+	var shipSize = currentShipSize;
+	for (var i = 1; i < shipSize; i++) {
+		markAdjacentCell("player");
+	}
 }
 
-function statusPlaceShips() {
+function statusPlayerPlaceShips() {
 	if (shipPlacementLegal) {
 		console.log("Ship has been placed!");
 		playerPlaceShip();
@@ -189,6 +196,20 @@ function statusPlaceShips() {
 		removeShipButton();
 	}
 }
+
+function addCellEventListeners() {
+	forEachCell(function(cell){
+		cell.addEventListener("mouseover", mouseoverText);
+		cell.addEventListener("click", statusPlayerPlaceShips);
+	});
+}
+function removeCellEventListeners(){
+	forEachCell(function(cell){
+		cell.removeEventListener("mouseover", mouseoverText);
+		cell.removeEventListener("click", statusPlayerPlaceShips);
+	});
+}
+
 
 //THIS ISN'T WORKING STILL
 //ALSO CHECK IF SHIP IS ALREADY THERE >>> 
@@ -213,9 +234,53 @@ function mouseoverText() {
 
 /***************** COMPUTER SHIP PLACEMENT***********************/
 function computerShipPlacement() {
-	//ADD THE FUNCTION CALLS HERE
+	//function calls here
+	tempPlaceCompShips();
 }
-//use class computer-ship instead of ship - dont want it colored 
+
+function tempPlaceCompShips() {
+//TODO: need way for computer to place ships randomly & legally
+
+	var cell1 = getComputerCell(1, 1);
+	var cell2 = getComputerCell(3, 3);
+	var cell3 = getComputerCell(5, 5);
+	var cell4 = getComputerCell(5, 7);
+	var cell5 = getComputerCell(2, 7);
+
+	computerPlaceShip(cell1, 'patrol', 'N');
+	computerPlaceShip(cell2, 'carrier', 'N');
+	computerPlaceShip(cell3, 'submarine', 'N');
+	computerPlaceShip(cell4, 'battleship', 'Y');
+	computerPlaceShip(cell5, 'destroyer', 'N');
+}
+
+// to adjust as needed 
+function computerPlaceShip(startCell, shipName, rotateYorN) {
+	currentCell = startCell;
+	cellHasComputerShip();
+	var shipSize;
+	if (shipName === 'patrol') {
+		shipSize = 2;
+	} else if (shipName === 'submarine' || shipName === 'destroyer') {
+		shipSize = 3;
+	} else if (shipName === 'battleship') {
+		shipSize = 4;
+	} else if (shipName === 'carrier') {
+		shipSize = 5;
+	}
+
+	if (rotateYorN === 'Y') {
+		rotateShip();
+	}
+	
+	for (var i = 1; i < shipSize; i++) {
+		markAdjacentCell("computer");
+	}
+	console.log("COMP SHIP PLACED!");
+}
+
+//use getComputerCell(); - takes x & y, returns a cell 
+//use class compship instead of ship - dont want it colored 
 
 
 
@@ -239,16 +304,21 @@ function forEachCell(callback){
 /****************** MARK CELLS **********************************/
 
 //Adds ship class to current cell
-function cellHasShip() {
+function cellHasPlayerShip() {
 	var cellToMark = currentCell;
 	cellToMark.className += " ship";
+}
+
+//Adds computer ship class to current cell
+function cellHasComputerShip() {
+	var cellToMark = currentCell;
+	cellToMark.className += " compship";
 }
 
 //Adds hit class to current cell
 function cellHit() {
 	var cellToMark = currentCell;
 	cellToMark.className += " hit";
-
 }
 
 //Adds miss class to current cell

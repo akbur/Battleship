@@ -28,9 +28,6 @@ body {
 .grid-cell:hover {
 	background-color: lightGray;
 }
-.placing {
-	backgroun-color: DarkOliveGreen;
-}
 
 .ship {
 	background-color: DarkOliveGreen;
@@ -39,6 +36,12 @@ body {
 .hit {
 	background-color:red;
 }
+
+/* compship is temporary, wont need color */
+.compship {
+	background-color: purple;
+}
+
 .miss {
 	background-color:darkGray;
 }
