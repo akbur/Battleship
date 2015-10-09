@@ -3,6 +3,9 @@ var gridSize = 10;
 var numberOfShips = 5;
 var shipDirection = 'horizontal';
 var currentShipName, currentShipSize, currentCell;
+var xCordLimit = gridSize;
+var yCordLimit = gridSize;
+var xCord, yCord, areCellsEmpty;
 
 setupGame();
 computerShipPlacement();
@@ -235,29 +238,88 @@ function mouseoverText() {
 /***************** COMPUTER SHIP PLACEMENT***********************/
 function computerShipPlacement() {
 	//function calls here
-	tempPlaceCompShips();
+	PlaceCompShips();
 }
 
-function tempPlaceCompShips() {
-//TODO: need way for computer to place ships randomly & legally
-
-	var cell1 = getComputerCell(1, 1);
-	var cell2 = getComputerCell(3, 3);
-	var cell3 = getComputerCell(5, 5);
-	var cell4 = getComputerCell(5, 7);
-	var cell5 = getComputerCell(2, 7);
-
-	computerPlaceShip(cell1, 'patrol', 'N');
-	computerPlaceShip(cell2, 'carrier', 'N');
-	computerPlaceShip(cell3, 'submarine', 'N');
-	computerPlaceShip(cell4, 'battleship', 'Y');
-	computerPlaceShip(cell5, 'destroyer', 'N');
+function PlaceCompShips() {
+	computerPlaceShip('patrol');
+	computerPlaceShip('carrier');
+	computerPlaceShip('submarine');
+	computerPlaceShip('battleship');
+	computerPlaceShip('destroyer');
 }
 
-// to adjust as needed 
-function computerPlaceShip(startCell, shipName, rotateYorN) {
-	currentCell = startCell;
-	cellHasComputerShip();
+
+//areCellsEmpty is working & correctly checking
+//but this function still places regardless
+//work on that next
+function getLegalComputerCell(shipSize) {
+	var empty;
+	preventShipOverlap(shipSize);
+	generateCoordinates();
+	areCellsEmpty(shipSize);
+	var cell = getComputerCell(xCord, yCord);
+	return cell;	
+}
+
+function preventShipOverlap(shipSize) {
+	if (shipDirection === 'horizontal') {
+		xCordLimit = gridSize - shipSize;
+	} else if (shipDirection === 'vertical') {
+		yCordLimit = gridSize - shipSize;
+	}
+}
+
+function generateCoordinates() {
+	xCord = getRandomInt(1, xCordLimit);
+	yCord = getRandomInt(1, yCordLimit);
+}
+
+function areCellsEmpty(shipSize){
+	var numCellsEmpty = 0;
+	if (shipDirection === 'horizontal') {
+		for (var i = xCord; i < shipSize + xCord; i++) {
+			console.log("checking cell: " + i + ', ' + yCord);
+			var compCell = getComputerCell(i, yCord);
+			if (!(compCell.classList.contains('compship'))) {
+				numCellsEmpty++;
+			}
+		}
+	} else if (shipDirection === 'vertical') {
+		for (var i = yCord; i < shipSize + yCord; i++) {
+			console.log("checking cell: " + xCord + ', ' + i);
+			var compCell = getComputerCell(xCord, i);
+			if (!(compCell.classList.contains('compship'))) {
+				numCellsEmpty++;
+			}
+		}
+	}
+	if (numCellsEmpty === shipSize) {
+		console.log("cells are empty");
+		return true;
+	} else {
+		console.log("cells aren't empty: " + numCellsEmpty);
+		return false;
+	}
+}
+
+function computerDecideRotate() {
+	var selection = getRandomInt(1,2);
+	if (selection === 1) {
+		return 'Y';
+	} else if (selection === 2) {
+		return 'N';
+	}
+}
+
+function computerPlaceShip(shipName) {
+	//Randomized Ship Rotation
+	rotateYorN = computerDecideRotate();
+	if (rotateYorN === 'Y') {
+		rotateShip();
+	}
+
+	//Determine shipSize based on type of ship
 	var shipSize;
 	if (shipName === 'patrol') {
 		shipSize = 2;
@@ -269,19 +331,14 @@ function computerPlaceShip(startCell, shipName, rotateYorN) {
 		shipSize = 5;
 	}
 
-	if (rotateYorN === 'Y') {
-		rotateShip();
-	}
-	
+	//Place ship in a legal space
+	currentCell = getLegalComputerCell(shipSize);
+	cellHasComputerShip();
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("computer");
 	}
 	console.log("COMP SHIP PLACED!");
 }
-
-//use getComputerCell(); - takes x & y, returns a cell 
-//use class compship instead of ship - dont want it colored 
-
 
 
 /***************    HELPER FUNCTIONS      ***********************/
@@ -299,6 +356,10 @@ function forEachCell(callback){
 			callback(cell);
 		}
 	}
+}
+
+function getRandomInt(min, max) {
+	return (Math.floor(Math.random() * (max - min + 1)) + min);
 }
 
 /****************** MARK CELLS **********************************/
@@ -327,6 +388,7 @@ function cellMiss() {
 	cellToMark.className += " miss";
 
 }
+
 
 
 
