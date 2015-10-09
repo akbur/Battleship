@@ -1,17 +1,28 @@
 
 var gridSize = 10;
-var placingShip = false;
+var numberOfShips = 5;
+var shipDirection = 'horizontal';
+var currentShipName, currentShipSize, currentCell;
+
 setupGame();
 shipClickHandler();
 
 
+/***************** SETUP *******************************/
+
 function setupGame() {
 	createGrid();
+	getCellClickHandler();
+	addShipButtons();
+	addRotateButton();
+	getShipClickHandler();
+
+
 }
 
 function createGrid() {
 	var gridDiv = document.querySelectorAll('.grid-container');
-  for (var grid = 0; grid < gridDiv.length; grid++) {
+	for (var grid = 0; grid < gridDiv.length; grid++) {
 		for (var i = gridSize; i >= 1; i--) {
 			for (var j = 1; j <= gridSize; j++) {
 				var cell = document.createElement('div');
@@ -24,7 +35,14 @@ function createGrid() {
 	}
 }
 
-//remember to change function to get either human or enemy grid
+/******************      GET CELLS         *****************/
+
+function getCellClickHandler() {
+	forEachCell(function(cell){
+		cell.addEventListener("click", getCellFromEvent);
+	});
+}
+
 function getCell(x , y) {
 	var cells = document.getElementsByClassName('grid-cell');
 	for (var i = 0; i < cells.length; i++) {
@@ -34,22 +52,170 @@ function getCell(x , y) {
 	}
 };
 
-function getAdjacentCell(cell, direction) {
+function getCellFromEvent() {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	currentCell = getCell(x, y);
+}
+
+//fix this to work with rotate
+function getAdjacentCell() {
+	var cell = currentCell;
 	var x = parseInt(cell.dataset.x);
 	var y = parseInt(cell.dataset.y);
-	var direction = direction;
 	
-	if (direction = "up") {
+	if (shipDirection === "vertical") {
 		y += 1;
-	} else if (direction = "down") {
-		y -= 1;
-	} else if (direction = "right") {
+	} else if (shipDirection === "horizontal") {
 		x += 1;
-	} else if (direction = "left") {
-		x -= 1;
 	}
 
-	return getCell(x, y);
+	var adjacentCell = getCell(x, y);
+	return adjacentCell;
+}
+
+function rotateShip() {
+	if (shipDirection === "vertical") {
+		shipDirection = "horizontal";
+	} else if (shipDirection === "horizontal") {
+		shipDirection = "vertical";
+	}
+}
+
+/********************     SHIP PLACEMENT    *************************/
+
+function getShipClickHandler() {
+	var shipButtons = document.getElementsByClassName('ship-button');
+	for (var i = 0; i < shipButtons.length; i++){
+		shipButtons[i].addEventListener('click', getShipFromEvent);
+	}
+}
+
+function getShipFromEvent() {
+	currentShipName = this.dataset.name;
+	currentShipSize = this.dataset.size;
+}
+
+function addShipButtons() {
+	var shipButtonDiv = document.getElementById('ship-buttons');
+	for (var i = 0; i < numberOfShips; i++) {
+		var shipButton = document.createElement('button');
+		shipButton.setAttribute('class', 'ship-button');
+		shipButtonDiv.appendChild(shipButton);
+	}
+	setShipButtons();
+}
+function addRotateButton() {
+	var rotateDiv = document.getElementById('rotate-button-div');
+	var rotateButton = document.createElement('button');
+	rotateButton.setAttribute('id', 'rotate-button');
+	rotateButton.innerText = "Rotate";
+	rotateDiv.appendChild(rotateButton);
+	rotateButton.addEventListener('click', rotateShip);
+}
+
+function customizeShipButton(index, name, size){
+	var shipButtons = document.getElementsByClassName('ship-button');
+	shipButtons[index].innerText = name;
+	shipButtons[index].setAttribute('data-size', size);
+	shipButtons[index].setAttribute('data-name', name.toLowerCase());
+}
+
+function setShipButtons() {
+	customizeShipButton(0, "Patrol", 2);
+	customizeShipButton(1, "Destroyer", 3);
+	customizeShipButton(2, "Submarine", 3);
+	customizeShipButton(3, "Battleship", 4);
+	customizeShipButton(4, "Carrier", 5);
+}
+
+function getShipButton() {
+	var name = currentShipName;
+	var shipButtons = document.getElementsByClassName('ship-button');
+	for (var i = 0; i < shipButtons.length; i++) {
+		if (shipButtons[i].dataset.name === name.toLowerCase()) {
+			return shipButtons[i];
+		}
+	}
+}
+
+function removeShipButton() {
+	var buttonToHide = getShipButton();
+	buttonToHide.style.visibility='hidden'; 
+}
+
+function markAdjacentCell(){
+	currentCell = getAdjacentCell();
+	cellHasShip();
+}
+
+function playerPlaceShip() {
+	cellHasShip();
+	var shipSize = currentShipSize;
+	for (var i = 1; i < shipSize; i++) {
+		markAdjacentCell();
+	}
+}
+
+function shipClickHandler() {
+	var shipButtons = document.getElementsByClassName('ship-button');
+	for (var i = 0; i < shipButtons.length; i++){
+		console.log(shipButtons[i]);
+		shipButtons[i].addEventListener("click", function() {
+			addCellEventListeners();
+		});
+	}
+}
+
+function addCellEventListeners() {
+	forEachCell(function(cell){
+		cell.addEventListener("mouseover", mouseoverText);
+		cell.addEventListener("click", statusPlaceShips);
+	});
+}
+function removeCellEventListeners(){
+	forEachCell(function(cell){
+		cell.removeEventListener("mouseover", mouseoverText);
+		cell.removeEventListener("click", statusPlaceShips);
+	});
+}
+
+function statusPlaceShips() {
+	if (shipPlacementLegal) {
+		console.log("Ship has been placed!");
+		playerPlaceShip();
+		removeCellEventListeners();
+		removeShipButton();
+	}
+}
+
+//ALSO CHECK IF SHIP IS ALREADY THERE >>> 
+function shipPlacementLegal() {
+	
+	if (shipDirection === 'horizontal') {
+		if (this.dataset.x <= gridSize - this.dataset.size) {
+			return true;
+		}
+	} else if (shipDirection === 'vertical') {
+		if (this.dataset.y <= gridSize - this.dataset.size) {
+			return true;
+		}
+	} else return false;
+}
+
+//TEMPORARY
+function mouseoverText() {
+	//Trade this later for hovering ship before placement
+	console.log("mousing over!");
+}
+
+/***************    HELPER FUNCTIONS      ***********************/
+
+
+function each(collection, callback){
+	for (var i = 0; i < collection.length; i++) {
+		callback(collection[i]);
+	}
 }
 
 function forEachCell(callback){
@@ -61,77 +227,27 @@ function forEachCell(callback){
 	}
 }
 
-function cellHasShip(cell) {
-	cell.className += " ship";
+
+/****************** MARK CELLS **********************************/
+
+//Adds ship class to current cell
+function cellHasShip() {
+	var cellToMark = currentCell;
+	cellToMark.className += " ship";
 }
 
-function resetBoard() {}
-
-
-function cellHit(cell) {
-	cell.className += " hit";
-
-}
-
-function cellMiss(cell) {
-	cell.className += " miss";
+//Adds hit class to current cell
+function cellHit() {
+	var cellToMark = currentCell;
+	cellToMark.className += " hit";
 
 }
 
-//ROTATION ISN"T WORKING 
-function playerPlaceShip(cell, shipSize, flipped) {
-	var shipSize = shipSize, cell = cell, flipped = flipped;
-	cellHasShip(cell);
-	for (var i = 1; i < shipSize; i++) {
-			cell = getAdjacentCell(cell, "right");
-			cellHasShip(cell);
-	}
-}
-
-//=====================WORKING ON CLICK HANDLERS==================
-
-//Currently only logs text to the console
-function shipClickHandler() {
-	var shipButton = document.getElementById('ship');
-	shipButton.addEventListener("click", function() {
-		console.log("ship clicked!");
-		addCellEventListeners();
-	});
-}
-
-function addCellEventListeners() {
-	forEachCell(function(cell){
-		cell.addEventListener("mouseover", mouseoverText);
-		cell.addEventListener("click", tempPlaceShip);
-	});
-}
-
-//----------TEMPORARY-------------------------------
-
-function mouseoverText() {
-	console.log("mousing over!");
-}
-function clickText() {
-	console.log("clicking!")
-}
-function tempPlaceShip(){
-	console.log("Ship has been placed!");
-	removeCellEventListeners();
-}
-function removeCellEventListeners(){
-	forEachCell(function(cell){
-		cell.removeEventListener("mouseover", mouseoverText);
-		cell.removeEventListener("click", tempPlaceShip);
-	});
-}
-
-function playerPlaceShips() {
-
-	var shipCell1 = getCell(5,4);
-	playerPlaceShip(shipCell1, 2, "h");
-	var shipCell2 = getCell (1, 2);
-	playerPlaceShip(shipCell2, 3, 'h');
+//Adds miss class to current cell
+function cellMiss() {
+	var cellToMark = currentCell;
+	cellToMark.className += " miss";
 
 }
-playerPlaceShips();
+
 
