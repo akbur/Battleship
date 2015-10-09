@@ -28,6 +28,9 @@ body {
 .grid-cell:hover {
 	background-color: lightGray;
 }
+.placing {
+	backgroun-color: DarkOliveGreen;
+}
 
 .ship {
 	background-color: DarkOliveGreen;
