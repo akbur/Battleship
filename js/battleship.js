@@ -27,8 +27,6 @@ function testShipPlacementComplete(callback) {
 	//if all ships have been placed
 	if (allShipsPlaced) {
 		//ADD FUNCTION HERE TO REMOVE HEADING & ROTATE BUTTON
-
-		
 		//callback will be to beginRounds
 		callback();
 	}
@@ -216,6 +214,8 @@ function rotateShip() {
 
 /******************* PLAYER PLACE SHIP *********************/
 
+//TODO: CREATE A BUTTON FOR AUTOMATICALLY PLACING PLAYER SHIPS
+
 function PlayerShipPlacement() {
 	getPlayerCellClickHandler();
 	getShipClickHandler();
@@ -224,6 +224,7 @@ function PlayerShipPlacement() {
 
 function markAdjacentCell(user){
 	currentCell = getAdjacentCell(user);
+	addShipNumberClass();
 	if (user === 'player') {
 		cellHasPlayerShip();
 	} else if (user ==='computer') {
@@ -231,8 +232,14 @@ function markAdjacentCell(user){
 	}
 }
 
+function addShipNumberClass() {
+	var shipNumberClass = " ship_number_" + numShipsPlaced;
+	currentCell.className += shipNumberClass;
+}
+
 function playerPlaceShip() {
 	cellHasPlayerShip();
+	addShipNumberClass();
 	var shipSize = currentShipSize;
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("player");
@@ -240,8 +247,8 @@ function playerPlaceShip() {
 }
 
 function statusPlayerPlaceShips() {
-	numShipsPlaced++;
 	if (shipPlacementLegal) {
+		numShipsPlaced++;
 		playerPlaceShip();
 		removeCellEventListeners();
 		removeShipButton();
@@ -278,6 +285,8 @@ function shipPlacementLegal() {
 }
 
 //TEMPORARY
+//NEED TO ADD HOVER STILL SO PLAYER CAN SEE
+//WHERE THEY ARE ABOUT TO PLACE SHIP
 function mouseoverText() {
 	//Trade this later for hovering ship before placement
 }
@@ -359,6 +368,7 @@ function computerDecideRotate() {
 	}
 }
 
+//TODO: SEPERATE INTO 3+ SEPERATE FUNCTIONS V 
 function computerPlaceShip(shipName) {
 	//Randomized Ship Rotation
 	rotateYorN = computerDecideRotate();
@@ -381,6 +391,8 @@ function computerPlaceShip(shipName) {
 	//Place ship in a legal space
 	currentCell = getLegalComputerCell(shipSize);
 	cellHasComputerShip();
+	numShipsPlaced++;
+	addShipNumberClass();
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("computer");
 	}
@@ -405,20 +417,32 @@ function playerFireClickHandler() {
 	});
 }
 
-//Marks a computer's cell depending on hit or miss
-//Then, calls computerTurn();
 function playerFire() {
 	markComputerCell();
 	computerTurn();
 }
 
 function markComputerCell() {
+	var shipSunk = isShipSunk();
 	//NEED TO MARK SHIP AS SUNK IF AS FINAL SQUARE IS HIT
 	if (currentCell.classList.contains('compship')){
-		cellHit();
+		if (shipSunk) {
+			sinkShip();
+		} else {
+			cellHit();
+		}
 	} else {
 		cellMiss();
 	}
+}
+
+function isShipSunk() {
+	//if current cell contains a ship (we haven't marked yet)
+	// look to see if if the rest of the ship is hit
+
+	//use class ship_number_#  for # 1-10
+	//1-5 computer ship, 6-10 player ship
+	return true;
 }
 
 /**************  COMPUTER TURN *********************************/
@@ -434,7 +458,6 @@ function computerTurn() {
 function computerTurnClickHanders() {
 	removeGetComputerCellClickHandler();
 	getPlayerCellClickHandler();
-
 }
 
 function computerFire() {
@@ -467,14 +490,19 @@ function isCellMarked() {
 		return true;
 	} else if (cellToCheck.classList.contains('miss')) {
 		return true;
-	} else if (cellToCheck.classList.contains('sank')) {
+	} else if (cellToCheck.classList.contains('sunk')) {
 		return true;
 	} else return false;
 }
 
 function markPlayerCell() {
+	var shipSunk = isShipSunk();
 	if (currentCell.classList.contains('ship')){
-		cellHit();
+	if (shipSunk) {
+			sinkShip();
+		} else {
+			cellHit();
+		}
 	} else {
 		cellMiss();
 	}
@@ -536,7 +564,11 @@ function cellHit() {
 function cellMiss() {
 	var cellToMark = currentCell;
 	cellToMark.className += " miss";
+}
 
+function sinkShip() {
+	var cellToMark = currentCell;
+	cellToMark.className += ' sunk';
 }
 
 
