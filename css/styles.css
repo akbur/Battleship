@@ -1,19 +1,28 @@
-h1, h2 {
+h1, h2, h3 {
 	font-family: Helvetica;
 	text-align: center;
 }
 
+h3 {
+	font-size:1.5em;
+}
 body {
 	background-color: CornflowerBlue;
 }
 
 .grid-container {
 	float: left;
+	display: inline-block;
 	width: 375px;
 	height: 375px;
-	padding: 100px;
+	padding: 20px;
 }
 
+.ship-buttons {
+	float: right;
+	clear: both;
+
+}
 
 /* GRID CELL COLORS FOR DIFF STATES */
 
@@ -28,9 +37,6 @@ body {
 .grid-cell:hover {
 	background-color: lightGray;
 }
-.placing {
-	backgroun-color: DarkOliveGreen;
-}
 
 .ship {
 	background-color: DarkOliveGreen;
@@ -39,6 +45,12 @@ body {
 .hit {
 	background-color:red;
 }
+
+/* compship is temporary, wont need color */
+.compship {
+	background-color: purple;
+}
+
 .miss {
 	background-color:darkGray;
 }

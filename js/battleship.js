@@ -3,10 +3,14 @@ var gridSize = 10;
 var numberOfShips = 5;
 var shipDirection = 'horizontal';
 var currentShipName, currentShipSize, currentCell;
+var xCordLimit = gridSize;
+var yCordLimit = gridSize;
+var xCord, yCord, areCellsEmpty;
 
 setupGame();
-playerShipPlacement();
 computerShipPlacement();
+playerShipPlacement();
+
 
 /***************** SETUP *******************************/
 
@@ -41,7 +45,17 @@ function getPlayerCell(x , y) {
 			return cells[i];
 		}
 	}
-};
+}
+
+function getComputerCell(x, y) {
+	var ComputerGridDiv = document.getElementsByClassName('grid-container')[1];
+	var cells = ComputerGridDiv.children;
+	for (var i = 0; i <= cells.length; i++) {
+		if (cells[i].dataset.x == x && cells[i].dataset.y == y) {
+			return cells[i];
+		}
+	}
+}
 
 function getCellFromEvent() {
 	var x = this.dataset.x;
@@ -55,7 +69,7 @@ function getCellClickHandler() {
 	});
 }
 
-function getAdjacentCell() {
+function getAdjacentCell(user) {
 	var cell = currentCell;
 	var x = parseInt(cell.dataset.x);
 	var y = parseInt(cell.dataset.y);
@@ -66,11 +80,15 @@ function getAdjacentCell() {
 		x += 1;
 	}
 
-	var adjacentCell = getPlayerCell(x, y);
+	if (user === "player") {
+		var adjacentCell = getPlayerCell(x, y);
+	} else if (user === "computer") {
+		var adjacentCell = getComputerCell(x, y);
+	}
 	return adjacentCell;
 }
 
-/********************     SHIP PLACEMENT    *************************/
+/********************     READY SHIP BUTTONS   *************************/
 
 function addShipButtons() {
 	var shipButtonDiv = document.getElementById('ship-buttons');
@@ -135,16 +153,10 @@ function getShipClickHandler() {
 function shipClickHandler() {
 	var shipButtons = document.getElementsByClassName('ship-button');
 	for (var i = 0; i < shipButtons.length; i++){
-		console.log(shipButtons[i]);
 		shipButtons[i].addEventListener("click", function() {
 			addCellEventListeners();
 		});
 	}
-}
-
-function playerShipPlacement() {
-	getShipClickHandler();
-	shipClickHandler();
 }
 
 function rotateShip() {
@@ -155,33 +167,31 @@ function rotateShip() {
 	}
 }
 
-function markAdjacentCell(){
-	currentCell = getAdjacentCell();
-	cellHasShip();
+/******************* PLAYER PLACE SHIP *********************/
+
+function playerShipPlacement() {
+	getShipClickHandler();
+	shipClickHandler();
 }
 
-function playerPlaceShip() {
-	cellHasShip();
-	var shipSize = currentShipSize;
-	for (var i = 1; i < shipSize; i++) {
-		markAdjacentCell();
+function markAdjacentCell(user){
+	currentCell = getAdjacentCell(user);
+	if (user === 'player') {
+		cellHasPlayerShip();
+	} else if (user ==='computer') {
+		cellHasComputerShip();
 	}
 }
 
-function addCellEventListeners() {
-	forEachCell(function(cell){
-		cell.addEventListener("mouseover", mouseoverText);
-		cell.addEventListener("click", statusPlaceShips);
-	});
-}
-function removeCellEventListeners(){
-	forEachCell(function(cell){
-		cell.removeEventListener("mouseover", mouseoverText);
-		cell.removeEventListener("click", statusPlaceShips);
-	});
+function playerPlaceShip() {
+	cellHasPlayerShip();
+	var shipSize = currentShipSize;
+	for (var i = 1; i < shipSize; i++) {
+		markAdjacentCell("player");
+	}
 }
 
-function statusPlaceShips() {
+function statusPlayerPlaceShips() {
 	if (shipPlacementLegal) {
 		console.log("Ship has been placed!");
 		playerPlaceShip();
@@ -189,6 +199,20 @@ function statusPlaceShips() {
 		removeShipButton();
 	}
 }
+
+function addCellEventListeners() {
+	forEachCell(function(cell){
+		cell.addEventListener("mouseover", mouseoverText);
+		cell.addEventListener("click", statusPlayerPlaceShips);
+	});
+}
+function removeCellEventListeners(){
+	forEachCell(function(cell){
+		cell.removeEventListener("mouseover", mouseoverText);
+		cell.removeEventListener("click", statusPlayerPlaceShips);
+	});
+}
+
 
 //THIS ISN'T WORKING STILL
 //ALSO CHECK IF SHIP IS ALREADY THERE >>> 
@@ -212,11 +236,100 @@ function mouseoverText() {
 }
 
 /***************** COMPUTER SHIP PLACEMENT***********************/
-function computerShipPlacement() {
-	//ADD THE FUNCTION CALLS HERE
-}
-//use class computer-ship instead of ship - dont want it colored 
 
+function computerShipPlacement() {
+	computerPlaceShip('patrol');
+	computerPlaceShip('carrier');
+	computerPlaceShip('submarine');
+	computerPlaceShip('battleship');
+	computerPlaceShip('destroyer');
+}
+
+function getLegalComputerCell(shipSize) {
+	var empty;
+
+	do {
+		preventShipOverlap(shipSize);
+		generateCoordinates();
+		empty = areCellsEmpty(shipSize);
+	} while (!empty);
+	
+	var cell = getComputerCell(xCord, yCord);
+	return cell;
+}
+
+function preventShipOverlap(shipSize) {
+	if (shipDirection === 'horizontal') {
+		xCordLimit = gridSize - shipSize;
+	} else if (shipDirection === 'vertical') {
+		yCordLimit = gridSize - shipSize;
+	}
+}
+
+function generateCoordinates() {
+	xCord = getRandomInt(1, xCordLimit);
+	yCord = getRandomInt(1, yCordLimit);
+}
+
+function areCellsEmpty(shipSize){
+	var numCellsEmpty = 0;
+	if (shipDirection === 'horizontal') {
+		for (var i = xCord; i < shipSize + xCord; i++) {
+			var compCell = getComputerCell(i, yCord);
+			if (!(compCell.classList.contains('compship'))) {
+				numCellsEmpty++;
+			}
+		}
+	} else if (shipDirection === 'vertical') {
+		for (var i = yCord; i < shipSize + yCord; i++) {
+			var compCell = getComputerCell(xCord, i);
+			if (!(compCell.classList.contains('compship'))) {
+				numCellsEmpty++;
+			}
+		}
+	}
+	if (numCellsEmpty === shipSize) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function computerDecideRotate() {
+	var selection = getRandomInt(1,2);
+	if (selection === 1) {
+		return 'Y';
+	} else if (selection === 2) {
+		return 'N';
+	}
+}
+
+function computerPlaceShip(shipName) {
+	//Randomized Ship Rotation
+	rotateYorN = computerDecideRotate();
+	if (rotateYorN === 'Y') {
+		rotateShip();
+	}
+
+	//Determine shipSize based on type of ship
+	var shipSize;
+	if (shipName === 'patrol') {
+		shipSize = 2;
+	} else if (shipName === 'submarine' || shipName === 'destroyer') {
+		shipSize = 3;
+	} else if (shipName === 'battleship') {
+		shipSize = 4;
+	} else if (shipName === 'carrier') {
+		shipSize = 5;
+	}
+
+	//Place ship in a legal space
+	currentCell = getLegalComputerCell(shipSize);
+	cellHasComputerShip();
+	for (var i = 1; i < shipSize; i++) {
+		markAdjacentCell("computer");
+	}
+}
 
 
 /***************    HELPER FUNCTIONS      ***********************/
@@ -236,19 +349,28 @@ function forEachCell(callback){
 	}
 }
 
+function getRandomInt(min, max) {
+	return (Math.floor(Math.random() * (max - min + 1)) + min);
+}
+
 /****************** MARK CELLS **********************************/
 
 //Adds ship class to current cell
-function cellHasShip() {
+function cellHasPlayerShip() {
 	var cellToMark = currentCell;
 	cellToMark.className += " ship";
+}
+
+//Adds computer ship class to current cell
+function cellHasComputerShip() {
+	var cellToMark = currentCell;
+	cellToMark.className += " compship";
 }
 
 //Adds hit class to current cell
 function cellHit() {
 	var cellToMark = currentCell;
 	cellToMark.className += " hit";
-
 }
 
 //Adds miss class to current cell
@@ -257,6 +379,7 @@ function cellMiss() {
 	cellToMark.className += " miss";
 
 }
+
 
 
 
