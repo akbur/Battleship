@@ -42,14 +42,15 @@ body {
 	background-color: DarkOliveGreen;
 }
 
-.hit {
-	background-color:red;
-}
-
 /* compship is temporary, wont need color */
 .compship {
 	background-color: purple;
 }
+
+.hit {
+	background-color:red;
+}
+
 
 .miss {
 	background-color:darkGray;

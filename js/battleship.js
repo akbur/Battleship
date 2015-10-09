@@ -1,25 +1,45 @@
 
 var gridSize = 10;
+var numShipsPlaced = 0;
 var numberOfShips = 5;
 var shipDirection = 'horizontal';
 var currentShipName, currentShipSize, currentCell;
-var xCordLimit = gridSize;
-var yCordLimit = gridSize;
-var xCord, yCord, areCellsEmpty;
+var xCoordLimit = gridSize;
+var yCoordLimit = gridSize;
+var xCoord, yCoord, areCellsEmpty;
 
 setupGame();
-computerShipPlacement();
-playerShipPlacement();
-
-
-/***************** SETUP *******************************/
 
 function setupGame() {
 	createGrid();
-	getCellClickHandler();
 	addShipButtons();
 	addRotateButton();
+	shipPlacement();
 }
+
+function shipPlacement() {
+	computerShipPlacement();
+	PlayerShipPlacement();
+}
+
+function testShipPlacementComplete(callback) {
+	var allShipsPlaced = allPlayerShipsPlaced();
+	//if all ships have been placed
+	if (allShipsPlaced) {
+		//ADD FUNCTION HERE TO REMOVE HEADING & ROTATE BUTTON
+
+		
+		//callback will be to beginRounds
+		callback();
+	}
+}
+
+function beginRounds() {
+	playerTurn();
+	//computerTurn will be called when playerTurn complete
+}
+
+/***************** SETUP *******************************/
 
 function createGrid() {
 	var gridDiv = document.querySelectorAll('.grid-container');
@@ -37,6 +57,8 @@ function createGrid() {
 }
 
 /******************      GET CELLS         *****************/
+//Need to combine a lot of these to make more DRY, but don't want
+//to mess anything up and stop it from working right now.
 
 function getPlayerCell(x , y) {
 	var cells = document.getElementsByClassName('grid-cell');
@@ -57,15 +79,40 @@ function getComputerCell(x, y) {
 	}
 }
 
-function getCellFromEvent() {
+function getPlayerCellFromEvent() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
 	currentCell = getPlayerCell(x, y);
 }
 
-function getCellClickHandler() {
-	forEachCell(function(cell){
-		cell.addEventListener("click", getCellFromEvent);
+function getComputerCellFromEvent() {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	currentCell = getComputerCell(x, y);
+}
+
+
+function getPlayerCellClickHandler() {
+	forEachPlayerCell(function(cell){
+		cell.addEventListener("click", getPlayerCellFromEvent);
+	});
+}
+
+function removeGetPlayerCellClickHandler() {
+	forEachPlayerCell(function(cell){
+		cell.removeEventListener("click", getPlayerCellFromEvent);
+	});
+}
+
+function getComputerCellClickHandler() {
+	forEachComputerCell(function(cell){
+		cell.addEventListener("click", getComputerCellFromEvent);
+	});
+}
+
+function removeGetComputerCellClickHandler() {
+	forEachComputerCell(function(cell){
+		cell.addEventListener("click", getComputerCellFromEvent);
 	});
 }
 
@@ -169,7 +216,8 @@ function rotateShip() {
 
 /******************* PLAYER PLACE SHIP *********************/
 
-function playerShipPlacement() {
+function PlayerShipPlacement() {
+	getPlayerCellClickHandler();
 	getShipClickHandler();
 	shipClickHandler();
 }
@@ -192,27 +240,27 @@ function playerPlaceShip() {
 }
 
 function statusPlayerPlaceShips() {
+	numShipsPlaced++;
 	if (shipPlacementLegal) {
-		console.log("Ship has been placed!");
 		playerPlaceShip();
 		removeCellEventListeners();
 		removeShipButton();
+		testShipPlacementComplete(beginRounds);
 	}
 }
 
 function addCellEventListeners() {
-	forEachCell(function(cell){
+	forEachPlayerCell(function(cell){
 		cell.addEventListener("mouseover", mouseoverText);
 		cell.addEventListener("click", statusPlayerPlaceShips);
 	});
 }
 function removeCellEventListeners(){
-	forEachCell(function(cell){
+	forEachPlayerCell(function(cell){
 		cell.removeEventListener("mouseover", mouseoverText);
 		cell.removeEventListener("click", statusPlayerPlaceShips);
 	});
 }
-
 
 //THIS ISN'T WORKING STILL
 //ALSO CHECK IF SHIP IS ALREADY THERE >>> 
@@ -232,7 +280,14 @@ function shipPlacementLegal() {
 //TEMPORARY
 function mouseoverText() {
 	//Trade this later for hovering ship before placement
-	console.log("mousing over!");
+}
+
+function allPlayerShipsPlaced() {
+	if (numShipsPlaced === numberOfShips) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /***************** COMPUTER SHIP PLACEMENT***********************/
@@ -254,35 +309,35 @@ function getLegalComputerCell(shipSize) {
 		empty = areCellsEmpty(shipSize);
 	} while (!empty);
 	
-	var cell = getComputerCell(xCord, yCord);
+	var cell = getComputerCell(xCoord, yCoord);
 	return cell;
 }
 
 function preventShipOverlap(shipSize) {
 	if (shipDirection === 'horizontal') {
-		xCordLimit = gridSize - shipSize;
+		xCoordLimit = gridSize - shipSize;
 	} else if (shipDirection === 'vertical') {
-		yCordLimit = gridSize - shipSize;
+		yCoordLimit = gridSize - shipSize;
 	}
 }
 
 function generateCoordinates() {
-	xCord = getRandomInt(1, xCordLimit);
-	yCord = getRandomInt(1, yCordLimit);
+	xCoord = getRandomInt(1, xCoordLimit);
+	yCoord = getRandomInt(1, yCoordLimit);
 }
 
 function areCellsEmpty(shipSize){
 	var numCellsEmpty = 0;
 	if (shipDirection === 'horizontal') {
-		for (var i = xCord; i < shipSize + xCord; i++) {
-			var compCell = getComputerCell(i, yCord);
+		for (var i = xCoord; i < shipSize + xCoord; i++) {
+			var compCell = getComputerCell(i, yCoord);
 			if (!(compCell.classList.contains('compship'))) {
 				numCellsEmpty++;
 			}
 		}
 	} else if (shipDirection === 'vertical') {
-		for (var i = yCord; i < shipSize + yCord; i++) {
-			var compCell = getComputerCell(xCord, i);
+		for (var i = yCoord; i < shipSize + yCoord; i++) {
+			var compCell = getComputerCell(xCoord, i);
 			if (!(compCell.classList.contains('compship'))) {
 				numCellsEmpty++;
 			}
@@ -331,6 +386,99 @@ function computerPlaceShip(shipName) {
 	}
 }
 
+/******************* PLAYER TURN *****************************/
+
+function playerTurn() {
+	console.log("Player's Turn!");
+	playerTurnCLickHandlers();
+}
+
+function playerTurnCLickHandlers() {
+	removeGetPlayerCellClickHandler();
+	getComputerCellClickHandler();
+	playerFireClickHandler();
+}
+
+function playerFireClickHandler() {
+	forEachComputerCell(function(cell){
+		cell.addEventListener('click', playerFire);
+	});
+}
+
+//Marks a computer's cell depending on hit or miss
+//Then, calls computerTurn();
+function playerFire() {
+	markComputerCell();
+	computerTurn();
+}
+
+function markComputerCell() {
+	//NEED TO MARK SHIP AS SUNK IF AS FINAL SQUARE IS HIT
+	if (currentCell.classList.contains('compship')){
+		cellHit();
+	} else {
+		cellMiss();
+	}
+}
+
+/**************  COMPUTER TURN *********************************/
+
+//TO=DO: IF COMPUTER HITS, NEEDS TO BE MORE LIKELY TO GUESS
+//AN ADJACENT CELL
+
+function computerTurn() {
+	computerTurnClickHanders();
+	computerFire();
+}
+
+function computerTurnClickHanders() {
+	removeGetComputerCellClickHandler();
+	getPlayerCellClickHandler();
+
+}
+
+function computerFire() {
+	currentCell = getUnmarkedPlayerCell();
+	markPlayerCell();
+	playerTurn();
+}
+
+function getRandomPlayerCellCoords() {
+	xCoord = getRandomInt(1, gridSize);
+	yCoord = getRandomInt(1, gridSize);
+}
+
+function getUnmarkedPlayerCell() {
+	var alreadyMarked;
+	var cell;
+
+	do {
+		getRandomPlayerCellCoords();
+		alreadyMarked = isCellMarked();
+	} while (alreadyMarked);
+
+	cell = getPlayerCell(xCoord, yCoord);
+	return cell;
+}
+
+function isCellMarked() {
+	var cellToCheck = getPlayerCell(xCoord, yCoord);
+	if (cellToCheck.classList.contains('hit')) {
+		return true;
+	} else if (cellToCheck.classList.contains('miss')) {
+		return true;
+	} else if (cellToCheck.classList.contains('sank')) {
+		return true;
+	} else return false;
+}
+
+function markPlayerCell() {
+	if (currentCell.classList.contains('ship')){
+		cellHit();
+	} else {
+		cellMiss();
+	}
+}
 
 /***************    HELPER FUNCTIONS      ***********************/
 
@@ -340,11 +488,22 @@ function each(collection, callback){
 	}
 }
 
-function forEachCell(callback){
+//COMBINE THESE LATER : DRY
+
+function forEachPlayerCell(callback){
 	for (var x = 1; x <= gridSize; x++){
 		for (var y = 1; y <= gridSize; y++){
 			var cell = getPlayerCell(x,y);
 			callback(cell);
+		}
+	}
+}
+
+function forEachComputerCell(callback){
+	for (var x = 1; x <= gridSize; x++){
+		for (var y = 1; y <= gridSize; y++){
+			var cell = getComputerCell(x,y);
+				callback(cell);
 		}
 	}
 }
