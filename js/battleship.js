@@ -236,12 +236,8 @@ function mouseoverText() {
 }
 
 /***************** COMPUTER SHIP PLACEMENT***********************/
-function computerShipPlacement() {
-	//function calls here
-	PlaceCompShips();
-}
 
-function PlaceCompShips() {
+function computerShipPlacement() {
 	computerPlaceShip('patrol');
 	computerPlaceShip('carrier');
 	computerPlaceShip('submarine');
@@ -249,17 +245,17 @@ function PlaceCompShips() {
 	computerPlaceShip('destroyer');
 }
 
-
-//areCellsEmpty is working & correctly checking
-//but this function still places regardless
-//work on that next
 function getLegalComputerCell(shipSize) {
 	var empty;
-	preventShipOverlap(shipSize);
-	generateCoordinates();
-	areCellsEmpty(shipSize);
+
+	do {
+		preventShipOverlap(shipSize);
+		generateCoordinates();
+		empty = areCellsEmpty(shipSize);
+	} while (!empty);
+	
 	var cell = getComputerCell(xCord, yCord);
-	return cell;	
+	return cell;
 }
 
 function preventShipOverlap(shipSize) {
@@ -279,7 +275,6 @@ function areCellsEmpty(shipSize){
 	var numCellsEmpty = 0;
 	if (shipDirection === 'horizontal') {
 		for (var i = xCord; i < shipSize + xCord; i++) {
-			console.log("checking cell: " + i + ', ' + yCord);
 			var compCell = getComputerCell(i, yCord);
 			if (!(compCell.classList.contains('compship'))) {
 				numCellsEmpty++;
@@ -287,7 +282,6 @@ function areCellsEmpty(shipSize){
 		}
 	} else if (shipDirection === 'vertical') {
 		for (var i = yCord; i < shipSize + yCord; i++) {
-			console.log("checking cell: " + xCord + ', ' + i);
 			var compCell = getComputerCell(xCord, i);
 			if (!(compCell.classList.contains('compship'))) {
 				numCellsEmpty++;
@@ -295,10 +289,8 @@ function areCellsEmpty(shipSize){
 		}
 	}
 	if (numCellsEmpty === shipSize) {
-		console.log("cells are empty");
 		return true;
 	} else {
-		console.log("cells aren't empty: " + numCellsEmpty);
 		return false;
 	}
 }
@@ -337,7 +329,6 @@ function computerPlaceShip(shipName) {
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("computer");
 	}
-	console.log("COMP SHIP PLACED!");
 }
 
 
