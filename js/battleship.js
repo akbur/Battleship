@@ -5,8 +5,8 @@ var shipDirection = 'horizontal';
 var currentShipName, currentShipSize, currentCell;
 
 setupGame();
-shipClickHandler();
-
+playerShipPlacement();
+computerShipPlacement();
 
 /***************** SETUP *******************************/
 
@@ -15,9 +15,6 @@ function setupGame() {
 	getCellClickHandler();
 	addShipButtons();
 	addRotateButton();
-	getShipClickHandler();
-
-
 }
 
 function createGrid() {
@@ -37,13 +34,7 @@ function createGrid() {
 
 /******************      GET CELLS         *****************/
 
-function getCellClickHandler() {
-	forEachCell(function(cell){
-		cell.addEventListener("click", getCellFromEvent);
-	});
-}
-
-function getCell(x , y) {
+function getPlayerCell(x , y) {
 	var cells = document.getElementsByClassName('grid-cell');
 	for (var i = 0; i < cells.length; i++) {
 		if (cells[i].dataset.x == x && cells[i].dataset.y == y) {
@@ -55,10 +46,15 @@ function getCell(x , y) {
 function getCellFromEvent() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
-	currentCell = getCell(x, y);
+	currentCell = getPlayerCell(x, y);
 }
 
-//fix this to work with rotate
+function getCellClickHandler() {
+	forEachCell(function(cell){
+		cell.addEventListener("click", getCellFromEvent);
+	});
+}
+
 function getAdjacentCell() {
 	var cell = currentCell;
 	var x = parseInt(cell.dataset.x);
@@ -70,31 +66,11 @@ function getAdjacentCell() {
 		x += 1;
 	}
 
-	var adjacentCell = getCell(x, y);
+	var adjacentCell = getPlayerCell(x, y);
 	return adjacentCell;
 }
 
-function rotateShip() {
-	if (shipDirection === "vertical") {
-		shipDirection = "horizontal";
-	} else if (shipDirection === "horizontal") {
-		shipDirection = "vertical";
-	}
-}
-
 /********************     SHIP PLACEMENT    *************************/
-
-function getShipClickHandler() {
-	var shipButtons = document.getElementsByClassName('ship-button');
-	for (var i = 0; i < shipButtons.length; i++){
-		shipButtons[i].addEventListener('click', getShipFromEvent);
-	}
-}
-
-function getShipFromEvent() {
-	currentShipName = this.dataset.name;
-	currentShipSize = this.dataset.size;
-}
 
 function addShipButtons() {
 	var shipButtonDiv = document.getElementById('ship-buttons');
@@ -144,16 +120,15 @@ function removeShipButton() {
 	buttonToHide.style.visibility='hidden'; 
 }
 
-function markAdjacentCell(){
-	currentCell = getAdjacentCell();
-	cellHasShip();
+function getShipFromEvent() {
+	currentShipName = this.dataset.name;
+	currentShipSize = this.dataset.size;
 }
 
-function playerPlaceShip() {
-	cellHasShip();
-	var shipSize = currentShipSize;
-	for (var i = 1; i < shipSize; i++) {
-		markAdjacentCell();
+function getShipClickHandler() {
+	var shipButtons = document.getElementsByClassName('ship-button');
+	for (var i = 0; i < shipButtons.length; i++){
+		shipButtons[i].addEventListener('click', getShipFromEvent);
 	}
 }
 
@@ -164,6 +139,32 @@ function shipClickHandler() {
 		shipButtons[i].addEventListener("click", function() {
 			addCellEventListeners();
 		});
+	}
+}
+
+function playerShipPlacement() {
+	getShipClickHandler();
+	shipClickHandler();
+}
+
+function rotateShip() {
+	if (shipDirection === "vertical") {
+		shipDirection = "horizontal";
+	} else if (shipDirection === "horizontal") {
+		shipDirection = "vertical";
+	}
+}
+
+function markAdjacentCell(){
+	currentCell = getAdjacentCell();
+	cellHasShip();
+}
+
+function playerPlaceShip() {
+	cellHasShip();
+	var shipSize = currentShipSize;
+	for (var i = 1; i < shipSize; i++) {
+		markAdjacentCell();
 	}
 }
 
@@ -189,6 +190,7 @@ function statusPlaceShips() {
 	}
 }
 
+//THIS ISN'T WORKING STILL
 //ALSO CHECK IF SHIP IS ALREADY THERE >>> 
 function shipPlacementLegal() {
 	
@@ -209,8 +211,15 @@ function mouseoverText() {
 	console.log("mousing over!");
 }
 
-/***************    HELPER FUNCTIONS      ***********************/
+/***************** COMPUTER SHIP PLACEMENT***********************/
+function computerShipPlacement() {
+	//ADD THE FUNCTION CALLS HERE
+}
+//use class computer-ship instead of ship - dont want it colored 
 
+
+
+/***************    HELPER FUNCTIONS      ***********************/
 
 function each(collection, callback){
 	for (var i = 0; i < collection.length; i++) {
@@ -221,12 +230,11 @@ function each(collection, callback){
 function forEachCell(callback){
 	for (var x = 1; x <= gridSize; x++){
 		for (var y = 1; y <= gridSize; y++){
-			var cell = getCell(x,y);
+			var cell = getPlayerCell(x,y);
 			callback(cell);
 		}
 	}
 }
-
 
 /****************** MARK CELLS **********************************/
 
@@ -249,5 +257,6 @@ function cellMiss() {
 	cellToMark.className += " miss";
 
 }
+
 
 
