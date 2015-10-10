@@ -8,6 +8,60 @@ var xCoordLimit = gridSize;
 var yCoordLimit = gridSize;
 var xCoord, yCoord, areCellsEmpty;
 
+//maybe cellX&YCoords shouldn't be listed except inside
+//the functions, but wont delete yet incase it messes up
+//what i'm working on
+
+var lastMove = {
+	cellHit: false,
+	cellMiss: false,
+	cellSunk: false,
+	cellXCoord: 0,
+	cellYCoord: 0,
+	updateCoords: function(x, y){
+		this.cellXCoord = x;
+		this.cellYCoord = y;
+		console.log("lastMove: " + this.cellXCoord + ', ' + this.cellYCoord);
+	},
+	getXCoord: function() {
+		return this.cellXCoord;
+	},
+	getYCoord: function() {
+		return this.cellYCoord;
+	},
+	updateStatus: function(status) {
+		if (status === 'hit') {
+			this.cellHit = true;
+			this.cellMiss = false;
+			this.cellSunk = false;
+		} else if (status === 'sunk') {
+			this.cellHit = false;
+			this.cellMiss = false;
+			this.cellSunk = true;	
+		} else if (status === 'miss') {
+			this.cellHit = false;
+			this.cellMiss = true;
+			this.cellSunk = false;
+		}
+	},
+};
+
+var initialHit = {
+	cellXCoord: 0,
+	cellYCoord: 0,
+	recordCoords: function() {
+		this.cellXCoord = currentCell.dataset.x;
+		this.cellYCoord = currentCell.dataset.y;
+		console.log("initialHit: " + this.cellXCoord + ', ' + this.cellYCoord);
+	},
+	getXCoord: function() {
+		return this.cellXCoord;
+	},
+	getYCoord: function() {
+		return this.cellYCoord;
+	},
+};
+
 setupGame();
 
 function setupGame() {
@@ -443,8 +497,6 @@ function isShipSunk(numCellsHit, shipNumberClass) {
 	for (var i = 0; i < sameShip.length; i++) {
 		if (sameShip[i].classList.contains('hit')) {
 			numCellsHit++;
-			console.log("the number of cells hit: " + numCellsHit);
-			console.log("shipSize: " + shipSize);
 			if (numCellsHit === shipSize) {
 					return true;
 			}
@@ -472,7 +524,7 @@ function getShipNumberClass() {
 
 function computerTurn() {
 	computerTurnClickHanders();
-	console.log("computer turn");
+	console.log("Computer's turn!");
 	computerFire();
 }
 
@@ -482,7 +534,7 @@ function computerTurnClickHanders() {
 }
 
 function computerFire() {
-	currentCell = getUnmarkedPlayerCell();
+	currentCell = targetPlayerCell();
 	markPlayerCell();
 	playerTurn();
 }
@@ -492,7 +544,11 @@ function getRandomPlayerCellCoords() {
 	yCoord = getRandomInt(1, gridSize);
 }
 
-function getUnmarkedPlayerCell() {
+function getSmarterPlayerCellCoords() {
+	//TODO
+}
+
+function targetPlayerCell() {
 	var alreadyMarked;
 	var cell;
 
@@ -502,6 +558,7 @@ function getUnmarkedPlayerCell() {
 	} while (alreadyMarked);
 
 	cell = getPlayerCell(xCoord, yCoord);
+	lastMove.updateCoords(xCoord, yCoord);
 	return cell;
 }
 
@@ -524,12 +581,28 @@ function markPlayerCell() {
 	if (currentCell.classList.contains('ship')){
 		if (shipSunk) {
 			sinkShip(shipNumberClass);
+			lastMove.updateStatus("sunk");
 		} else {
+			 if(firstHitOnShip(shipNumberClass)) {
+			 	initialHit.recordCoords();
+			 }
 			cellHit();
+			lastMove.updateStatus("hit");
 		}
 	} else {
 		cellMiss();
+		lastMove.updateStatus("miss");
 	}
+}
+
+function firstHitOnShip(shipNumberClass) {
+	var shipCells = document.getElementsByClassName(shipNumberClass);
+	for (var i = 0; i < shipCells.length; i++) {
+		if (shipCells[i].classList.contains("hit")) {
+			return false;
+		}
+	}
+	return true;
 }
 
 /***************    HELPER FUNCTIONS      ***********************/
