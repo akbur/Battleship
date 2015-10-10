@@ -1,25 +1,97 @@
 
 var gridSize = 10;
+var numShipsPlaced = 0;
 var numberOfShips = 5;
 var shipDirection = 'horizontal';
 var currentShipName, currentShipSize, currentCell;
-var xCordLimit = gridSize;
-var yCordLimit = gridSize;
-var xCord, yCord, areCellsEmpty;
+var xCoordLimit = gridSize;
+var yCoordLimit = gridSize;
+var xCoord, yCoord, areCellsEmpty;
+
+//maybe cellX&YCoords shouldn't be listed except inside
+//the functions, but wont delete yet incase it messes up
+//what i'm working on
+
+var lastMove = {
+	cellHit: false,
+	cellMiss: false,
+	cellSunk: false,
+	cellXCoord: 0,
+	cellYCoord: 0,
+	updateCoords: function(x, y){
+		this.cellXCoord = x;
+		this.cellYCoord = y;
+		console.log("lastMove: " + this.cellXCoord + ', ' + this.cellYCoord);
+	},
+	getXCoord: function() {
+		return this.cellXCoord;
+	},
+	getYCoord: function() {
+		return this.cellYCoord;
+	},
+	updateStatus: function(status) {
+		if (status === 'hit') {
+			this.cellHit = true;
+			this.cellMiss = false;
+			this.cellSunk = false;
+		} else if (status === 'sunk') {
+			this.cellHit = false;
+			this.cellMiss = false;
+			this.cellSunk = true;	
+		} else if (status === 'miss') {
+			this.cellHit = false;
+			this.cellMiss = true;
+			this.cellSunk = false;
+		}
+	},
+};
+
+var initialHit = {
+	cellXCoord: 0,
+	cellYCoord: 0,
+	recordCoords: function() {
+		this.cellXCoord = currentCell.dataset.x;
+		this.cellYCoord = currentCell.dataset.y;
+		console.log("initialHit: " + this.cellXCoord + ', ' + this.cellYCoord);
+	},
+	getXCoord: function() {
+		return this.cellXCoord;
+	},
+	getYCoord: function() {
+		return this.cellYCoord;
+	},
+};
 
 setupGame();
-computerShipPlacement();
-playerShipPlacement();
-
-
-/***************** SETUP *******************************/
 
 function setupGame() {
 	createGrid();
-	getCellClickHandler();
 	addShipButtons();
 	addRotateButton();
+	shipPlacement();
 }
+
+function shipPlacement() {
+	computerShipPlacement();
+	PlayerShipPlacement();
+}
+
+function testShipPlacementComplete(callback) {
+	var allShipsPlaced = allPlayerShipsPlaced();
+	//if all ships have been placed
+	if (allShipsPlaced) {
+		//ADD FUNCTION HERE TO REMOVE HEADING & ROTATE BUTTON
+		//callback will be to beginRounds
+		callback();
+	}
+}
+
+function beginRounds() {
+	playerTurn();
+	//computerTurn will be called when playerTurn complete
+}
+
+/***************** SETUP *******************************/
 
 function createGrid() {
 	var gridDiv = document.querySelectorAll('.grid-container');
@@ -37,6 +109,8 @@ function createGrid() {
 }
 
 /******************      GET CELLS         *****************/
+//Need to combine a lot of these to make more DRY, but don't want
+//to mess anything up and stop it from working right now.
 
 function getPlayerCell(x , y) {
 	var cells = document.getElementsByClassName('grid-cell');
@@ -57,15 +131,39 @@ function getComputerCell(x, y) {
 	}
 }
 
-function getCellFromEvent() {
+function getPlayerCellFromEvent() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
 	currentCell = getPlayerCell(x, y);
 }
 
-function getCellClickHandler() {
-	forEachCell(function(cell){
-		cell.addEventListener("click", getCellFromEvent);
+function getComputerCellFromEvent() {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	currentCell = getComputerCell(x, y);
+}
+
+function getPlayerCellClickHandler() {
+	forEachCell('player', function(cell){
+		cell.addEventListener("click", getPlayerCellFromEvent);
+	});
+}
+
+function removeGetPlayerCellClickHandler() {
+	forEachCell('player', function(cell){
+		cell.removeEventListener("click", getPlayerCellFromEvent);
+	});
+}
+
+function getComputerCellClickHandler() {
+	forEachCell('computer', function(cell){
+		cell.addEventListener("click", getComputerCellFromEvent);
+	});
+}
+
+function removeGetComputerCellClickHandler() {
+	forEachCell('computer', function(cell){
+		cell.addEventListener("click", getComputerCellFromEvent);
 	});
 }
 
@@ -169,13 +267,17 @@ function rotateShip() {
 
 /******************* PLAYER PLACE SHIP *********************/
 
-function playerShipPlacement() {
+//TODO: CREATE A BUTTON FOR AUTOMATICALLY PLACING PLAYER SHIPS
+
+function PlayerShipPlacement() {
+	getPlayerCellClickHandler();
 	getShipClickHandler();
 	shipClickHandler();
 }
 
 function markAdjacentCell(user){
 	currentCell = getAdjacentCell(user);
+	addShipNumberClass();
 	if (user === 'player') {
 		cellHasPlayerShip();
 	} else if (user ==='computer') {
@@ -183,8 +285,14 @@ function markAdjacentCell(user){
 	}
 }
 
+function addShipNumberClass() {
+	var shipNumberClass = " ship_number_" + numShipsPlaced;
+	currentCell.className += shipNumberClass;
+}
+
 function playerPlaceShip() {
 	cellHasPlayerShip();
+	addShipNumberClass();
 	var shipSize = currentShipSize;
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("player");
@@ -193,26 +301,26 @@ function playerPlaceShip() {
 
 function statusPlayerPlaceShips() {
 	if (shipPlacementLegal) {
-		console.log("Ship has been placed!");
+		numShipsPlaced++;
 		playerPlaceShip();
 		removeCellEventListeners();
 		removeShipButton();
+		testShipPlacementComplete(beginRounds);
 	}
 }
 
 function addCellEventListeners() {
-	forEachCell(function(cell){
+	forEachCell('player', function(cell){
 		cell.addEventListener("mouseover", mouseoverText);
 		cell.addEventListener("click", statusPlayerPlaceShips);
 	});
 }
 function removeCellEventListeners(){
-	forEachCell(function(cell){
+	forEachCell('player', function(cell){
 		cell.removeEventListener("mouseover", mouseoverText);
 		cell.removeEventListener("click", statusPlayerPlaceShips);
 	});
 }
-
 
 //THIS ISN'T WORKING STILL
 //ALSO CHECK IF SHIP IS ALREADY THERE >>> 
@@ -230,9 +338,18 @@ function shipPlacementLegal() {
 }
 
 //TEMPORARY
+//NEED TO ADD HOVER STILL SO PLAYER CAN SEE
+//WHERE THEY ARE ABOUT TO PLACE SHIP
 function mouseoverText() {
 	//Trade this later for hovering ship before placement
-	console.log("mousing over!");
+}
+
+function allPlayerShipsPlaced() {
+	if (numShipsPlaced === (numberOfShips*2)) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /***************** COMPUTER SHIP PLACEMENT***********************/
@@ -254,35 +371,35 @@ function getLegalComputerCell(shipSize) {
 		empty = areCellsEmpty(shipSize);
 	} while (!empty);
 	
-	var cell = getComputerCell(xCord, yCord);
+	var cell = getComputerCell(xCoord, yCoord);
 	return cell;
 }
 
 function preventShipOverlap(shipSize) {
 	if (shipDirection === 'horizontal') {
-		xCordLimit = gridSize - shipSize;
+		xCoordLimit = gridSize - shipSize;
 	} else if (shipDirection === 'vertical') {
-		yCordLimit = gridSize - shipSize;
+		yCoordLimit = gridSize - shipSize;
 	}
 }
 
 function generateCoordinates() {
-	xCord = getRandomInt(1, xCordLimit);
-	yCord = getRandomInt(1, yCordLimit);
+	xCoord = getRandomInt(1, xCoordLimit);
+	yCoord = getRandomInt(1, yCoordLimit);
 }
 
 function areCellsEmpty(shipSize){
 	var numCellsEmpty = 0;
 	if (shipDirection === 'horizontal') {
-		for (var i = xCord; i < shipSize + xCord; i++) {
-			var compCell = getComputerCell(i, yCord);
+		for (var i = xCoord; i < shipSize + xCoord; i++) {
+			var compCell = getComputerCell(i, yCoord);
 			if (!(compCell.classList.contains('compship'))) {
 				numCellsEmpty++;
 			}
 		}
 	} else if (shipDirection === 'vertical') {
-		for (var i = yCord; i < shipSize + yCord; i++) {
-			var compCell = getComputerCell(xCord, i);
+		for (var i = yCoord; i < shipSize + yCoord; i++) {
+			var compCell = getComputerCell(xCoord, i);
 			if (!(compCell.classList.contains('compship'))) {
 				numCellsEmpty++;
 			}
@@ -304,6 +421,7 @@ function computerDecideRotate() {
 	}
 }
 
+//TODO: SEPERATE INTO 3+ SEPERATE FUNCTIONS V 
 function computerPlaceShip(shipName) {
 	//Randomized Ship Rotation
 	rotateYorN = computerDecideRotate();
@@ -326,24 +444,177 @@ function computerPlaceShip(shipName) {
 	//Place ship in a legal space
 	currentCell = getLegalComputerCell(shipSize);
 	cellHasComputerShip();
+	numShipsPlaced++;
+	addShipNumberClass();
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("computer");
 	}
 }
 
+/******************* PLAYER TURN *****************************/
 
-/***************    HELPER FUNCTIONS      ***********************/
+function playerTurn() {
+	console.log("Player's Turn!");
+	playerTurnCLickHandlers();
+}
 
-function each(collection, callback){
-	for (var i = 0; i < collection.length; i++) {
-		callback(collection[i]);
+function playerTurnCLickHandlers() {
+	removeGetPlayerCellClickHandler();
+	getComputerCellClickHandler();
+	playerFireClickHandler();
+}
+
+function playerFireClickHandler() {
+	forEachCell('computer', function(cell){
+		cell.addEventListener('click', playerFire);
+	});
+}
+
+function playerFire() {
+	markComputerCell();
+	computerTurn();
+}
+
+function markComputerCell() {
+	var numCellsHit = 1;
+	var shipNumberClass = getShipNumberClass();
+	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
+	
+	if (currentCell.classList.contains('compship')){
+		if (shipSunk) {
+			sinkShip(shipNumberClass);
+		} else {
+			cellHit();
+		}
+	} else {
+		cellMiss();
 	}
 }
 
-function forEachCell(callback){
+function isShipSunk(numCellsHit, shipNumberClass) {
+	var sameShip = document.getElementsByClassName(shipNumberClass);
+	var shipSize = sameShip.length;
+	for (var i = 0; i < sameShip.length; i++) {
+		if (sameShip[i].classList.contains('hit')) {
+			numCellsHit++;
+			if (numCellsHit === shipSize) {
+					return true;
+			}
+		}
+	}
+	return false;
+}
+
+function getShipNumberClass() {
+	var cell = currentCell;
+	var shipNumberClass = '';
+	for (var i = 1; i <= numberOfShips * 2; i++) {
+		shipNumberClass = ("ship_number_" + i);
+		if (cell.classList.contains(shipNumberClass)) {
+			return shipNumberClass;
+		}
+	}
+}
+
+/**************  COMPUTER TURN *********************************/
+
+//TO=DO: IF COMPUTER HITS, NEEDS TO BE MORE LIKELY TO GUESS
+//AN ADJACENT CELL
+//SMARTER COMPUTER
+
+function computerTurn() {
+	computerTurnClickHanders();
+	console.log("Computer's turn!");
+	computerFire();
+}
+
+function computerTurnClickHanders() {
+	removeGetComputerCellClickHandler();
+	getPlayerCellClickHandler();
+}
+
+function computerFire() {
+	currentCell = targetPlayerCell();
+	markPlayerCell();
+	playerTurn();
+}
+
+function getRandomPlayerCellCoords() {
+	xCoord = getRandomInt(1, gridSize);
+	yCoord = getRandomInt(1, gridSize);
+}
+
+function getSmarterPlayerCellCoords() {
+	//TODO
+}
+
+function targetPlayerCell() {
+	var alreadyMarked;
+	var cell;
+
+	do {
+		getRandomPlayerCellCoords();
+		alreadyMarked = isCellMarked();
+	} while (alreadyMarked);
+
+	cell = getPlayerCell(xCoord, yCoord);
+	lastMove.updateCoords(xCoord, yCoord);
+	return cell;
+}
+
+function isCellMarked() {
+	var cellToCheck = getPlayerCell(xCoord, yCoord);
+	if (cellToCheck.classList.contains('hit')) {
+		return true;
+	} else if (cellToCheck.classList.contains('miss')) {
+		return true;
+	} else if (cellToCheck.classList.contains('sunk')) {
+		return true;
+	} else return false;
+}
+
+function markPlayerCell() {
+	var numCellsHit = 1;
+	var shipNumberClass = getShipNumberClass();
+	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
+	
+	if (currentCell.classList.contains('ship')){
+		if (shipSunk) {
+			sinkShip(shipNumberClass);
+			lastMove.updateStatus("sunk");
+		} else {
+			 if(firstHitOnShip(shipNumberClass)) {
+			 	initialHit.recordCoords();
+			 }
+			cellHit();
+			lastMove.updateStatus("hit");
+		}
+	} else {
+		cellMiss();
+		lastMove.updateStatus("miss");
+	}
+}
+
+function firstHitOnShip(shipNumberClass) {
+	var shipCells = document.getElementsByClassName(shipNumberClass);
+	for (var i = 0; i < shipCells.length; i++) {
+		if (shipCells[i].classList.contains("hit")) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/***************    HELPER FUNCTIONS      ***********************/
+
+function forEachCell(user, callback){
 	for (var x = 1; x <= gridSize; x++){
 		for (var y = 1; y <= gridSize; y++){
-			var cell = getPlayerCell(x,y);
+			if (user === 'player') {
+				var cell = getPlayerCell(x,y);
+			} else if (user === 'computer') {
+				var cell = getComputerCell(x,y);
+			}
 			callback(cell);
 		}
 	}
@@ -377,9 +648,11 @@ function cellHit() {
 function cellMiss() {
 	var cellToMark = currentCell;
 	cellToMark.className += " miss";
-
 }
 
-
-
-
+function sinkShip(shipNumberClass) {
+	var sameShip = document.getElementsByClassName(shipNumberClass);
+	for (var i = 0; i < sameShip.length; i++) {
+		sameShip[i].className += ' sunk';
+	}
+}

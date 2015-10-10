@@ -46,15 +46,11 @@ body {
 	background-color:red;
 }
 
-/* compship is temporary, wont need color */
-.compship {
-	background-color: purple;
-}
 
 .miss {
 	background-color:darkGray;
 }
 
-.sank {
+.sunk {
 	background-color:black;
 }
