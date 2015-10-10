@@ -1,48 +1,16 @@
 //Text Based Battleship Game Plan
 
-//Gameboard is generated
+PLAN - TO DO 
 
-//Player Places ships
-//Ship name: size
-	//Carrier: 5
-	//Battleship: 4
-	//Submarine: 3
-	//Destroyer: 3
-	//Patrolboat: 2
-//Can rotate ships
+-When Player is placing ship, hover the image of the ship
+-Don't allow illegal ship placements by player
+-Make the computer's guesses smarter after hitting a ship
+-Work on CSS to make the gameboard prettier
+-Get rid of Ship heading and rotate button after ships are placed.
+	-maybe instead of hiding buttons, contain all of it in a container and hide the entire thing when ships are placed, 
+	-could put a message window there, instead, to display who the winner is.
 
-//Computer randomly places ship
-//Game begins
+-Make code more DRY - especially when I have 2 different functions for player & computer that do basically the same thing
+-Some functions do many things, make more specific functions.
 
-//Player turn 
-//Player chooses a space to target
-	//If player misses, marked as miss
-	//If player hits, marked as hit
-		//If final space of battleship hit, boat sinks
-			//If ship sinks, player wins
-
-//Computer turn
-//Computer randomly chooses a blank space to target
-//If misses, mark as hit
-//if hit & not sunk, computer guesses adjacent space on boat
-//If reaches the end in one direction and still not sunk, go to other end
-//if hit final space, sink
-	//if final ship sink, player wins
-
-	
-	/*
-	if (shipType = "carrier") {
-		shipSize = 5;
-	} else if (shipType = "battleship") {
-		shipSize = 4;
-	} else if (shipType = "submarine") {
-		shipSize = 3;
-	} else if (shipType = "destroyer") {
-		shipSize = 3;
-	} else if (shipType = "patrol") {
-		shipSize = 2;
-	} else {
-		console.log("Error: Wrong shipType.");
-	}
-	*/
 

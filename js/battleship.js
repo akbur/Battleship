@@ -89,27 +89,26 @@ function getComputerCellFromEvent() {
 	currentCell = getComputerCell(x, y);
 }
 
-
 function getPlayerCellClickHandler() {
-	forEachPlayerCell(function(cell){
+	forEachCell('player', function(cell){
 		cell.addEventListener("click", getPlayerCellFromEvent);
 	});
 }
 
 function removeGetPlayerCellClickHandler() {
-	forEachPlayerCell(function(cell){
+	forEachCell('player', function(cell){
 		cell.removeEventListener("click", getPlayerCellFromEvent);
 	});
 }
 
 function getComputerCellClickHandler() {
-	forEachComputerCell(function(cell){
+	forEachCell('computer', function(cell){
 		cell.addEventListener("click", getComputerCellFromEvent);
 	});
 }
 
 function removeGetComputerCellClickHandler() {
-	forEachComputerCell(function(cell){
+	forEachCell('computer', function(cell){
 		cell.addEventListener("click", getComputerCellFromEvent);
 	});
 }
@@ -257,13 +256,13 @@ function statusPlayerPlaceShips() {
 }
 
 function addCellEventListeners() {
-	forEachPlayerCell(function(cell){
+	forEachCell('player', function(cell){
 		cell.addEventListener("mouseover", mouseoverText);
 		cell.addEventListener("click", statusPlayerPlaceShips);
 	});
 }
 function removeCellEventListeners(){
-	forEachPlayerCell(function(cell){
+	forEachCell('player', function(cell){
 		cell.removeEventListener("mouseover", mouseoverText);
 		cell.removeEventListener("click", statusPlayerPlaceShips);
 	});
@@ -292,7 +291,7 @@ function mouseoverText() {
 }
 
 function allPlayerShipsPlaced() {
-	if (numShipsPlaced === numberOfShips) {
+	if (numShipsPlaced === (numberOfShips*2)) {
 		return true;
 	} else {
 		return false;
@@ -412,7 +411,7 @@ function playerTurnCLickHandlers() {
 }
 
 function playerFireClickHandler() {
-	forEachComputerCell(function(cell){
+	forEachCell('computer', function(cell){
 		cell.addEventListener('click', playerFire);
 	});
 }
@@ -423,11 +422,13 @@ function playerFire() {
 }
 
 function markComputerCell() {
-	var shipSunk = isShipSunk();
-	//NEED TO MARK SHIP AS SUNK IF AS FINAL SQUARE IS HIT
+	var numCellsHit = 1;
+	var shipNumberClass = getShipNumberClass();
+	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
+	
 	if (currentCell.classList.contains('compship')){
 		if (shipSunk) {
-			sinkShip();
+			sinkShip(shipNumberClass);
 		} else {
 			cellHit();
 		}
@@ -436,22 +437,42 @@ function markComputerCell() {
 	}
 }
 
-function isShipSunk() {
-	//if current cell contains a ship (we haven't marked yet)
-	// look to see if if the rest of the ship is hit
+function isShipSunk(numCellsHit, shipNumberClass) {
+	var sameShip = document.getElementsByClassName(shipNumberClass);
+	var shipSize = sameShip.length;
+	for (var i = 0; i < sameShip.length; i++) {
+		if (sameShip[i].classList.contains('hit')) {
+			numCellsHit++;
+			console.log("the number of cells hit: " + numCellsHit);
+			console.log("shipSize: " + shipSize);
+			if (numCellsHit === shipSize) {
+					return true;
+			}
+		}
+	}
+	return false;
+}
 
-	//use class ship_number_#  for # 1-10
-	//1-5 computer ship, 6-10 player ship
-	return true;
+function getShipNumberClass() {
+	var cell = currentCell;
+	var shipNumberClass = '';
+	for (var i = 1; i <= numberOfShips * 2; i++) {
+		shipNumberClass = ("ship_number_" + i);
+		if (cell.classList.contains(shipNumberClass)) {
+			return shipNumberClass;
+		}
+	}
 }
 
 /**************  COMPUTER TURN *********************************/
 
 //TO=DO: IF COMPUTER HITS, NEEDS TO BE MORE LIKELY TO GUESS
 //AN ADJACENT CELL
+//SMARTER COMPUTER
 
 function computerTurn() {
 	computerTurnClickHanders();
+	console.log("computer turn");
 	computerFire();
 }
 
@@ -496,10 +517,13 @@ function isCellMarked() {
 }
 
 function markPlayerCell() {
-	var shipSunk = isShipSunk();
+	var numCellsHit = 1;
+	var shipNumberClass = getShipNumberClass();
+	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
+	
 	if (currentCell.classList.contains('ship')){
-	if (shipSunk) {
-			sinkShip();
+		if (shipSunk) {
+			sinkShip(shipNumberClass);
 		} else {
 			cellHit();
 		}
@@ -510,28 +534,15 @@ function markPlayerCell() {
 
 /***************    HELPER FUNCTIONS      ***********************/
 
-function each(collection, callback){
-	for (var i = 0; i < collection.length; i++) {
-		callback(collection[i]);
-	}
-}
-
-//COMBINE THESE LATER : DRY
-
-function forEachPlayerCell(callback){
+function forEachCell(user, callback){
 	for (var x = 1; x <= gridSize; x++){
 		for (var y = 1; y <= gridSize; y++){
-			var cell = getPlayerCell(x,y);
+			if (user === 'player') {
+				var cell = getPlayerCell(x,y);
+			} else if (user === 'computer') {
+				var cell = getComputerCell(x,y);
+			}
 			callback(cell);
-		}
-	}
-}
-
-function forEachComputerCell(callback){
-	for (var x = 1; x <= gridSize; x++){
-		for (var y = 1; y <= gridSize; y++){
-			var cell = getComputerCell(x,y);
-				callback(cell);
 		}
 	}
 }
@@ -566,11 +577,9 @@ function cellMiss() {
 	cellToMark.className += " miss";
 }
 
-function sinkShip() {
-	var cellToMark = currentCell;
-	cellToMark.className += ' sunk';
+function sinkShip(shipNumberClass) {
+	var sameShip = document.getElementsByClassName(shipNumberClass);
+	for (var i = 0; i < sameShip.length; i++) {
+		sameShip[i].className += ' sunk';
+	}
 }
-
-
-
-
