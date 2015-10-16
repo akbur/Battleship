@@ -11,10 +11,6 @@ var computerMoveStatus = "targetingRandomCell";
 var tempMovePlan = [];
 //other possible status = "targetingSpecificCell";
 
-//maybe cellX&YCoords shouldn't be listed except inside
-//the functions, but wont delete yet incase it messes up
-//what i'm working on
-
 var lastMove = {
 	cellHit: false,
 	cellMiss: false,
@@ -25,12 +21,6 @@ var lastMove = {
 		this.cellXCoord = x;
 		this.cellYCoord = y;
 		console.log("lastMove: " + this.cellXCoord + ', ' + this.cellYCoord);
-	},
-	getXCoord: function() {
-		return this.cellXCoord;
-	},
-	getYCoord: function() {
-		return this.cellYCoord;
 	},
 	updateStatus: function(status) {
 		if (status === 'hit') {
@@ -56,12 +46,6 @@ var initialHit = {
 		this.cellXCoord = currentCell.dataset.x;
 		this.cellYCoord = currentCell.dataset.y;
 		console.log("initialHit: " + this.cellXCoord + ', ' + this.cellYCoord);
-	},
-	getXCoord: function() {
-		return this.cellXCoord;
-	},
-	getYCoord: function() {
-		return this.cellYCoord;
 	},
 };
 
@@ -499,9 +483,9 @@ function computerTurnClickHanders() {
 }
 
 function computerFire() {
-	console.log("computer firing."); //all good here
+	console.log("computer firing.");
 	currentCell	= determineTypeOfFire();
-	console.log("current cell:" + currentCell); //this one is returning a cell correctly
+	console.log("current cell:" + currentCell);
 
 	markPlayerCell();
 	playerTurn();
@@ -587,8 +571,8 @@ function createMovePlan() {
 	var movePlan = [];
 	var currentDirection;
 	var oppositeDirection;
-	var initX = initialHit.getXCoord();
-	var initY = initialHit.getYCoord();
+	var initX = initialHit.cellXCoord;
+	var initY = initialHit.cellYCoord;
 
 	//get all empty move options from the initial hit
 	var moveOptions = determineMoveOptions(initX, initY);
