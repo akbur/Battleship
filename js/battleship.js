@@ -637,6 +637,10 @@ function createMovePlan() {
 	var initX = initialHit.getXCoord();
 	var initY = initialHit.getYCoord();
 
+	//get all empty move options from the initial hit
+	var moveOptions = determineMoveOptions(initX, initY);
+	printMoveOptions(moveOptions);
+
 	//for DEBUG
 	function printMovePlan(movePlan) {
 		for (var i = 0; i < movePlan.length; i++) {
@@ -650,11 +654,7 @@ function createMovePlan() {
 		}
 	}
 
-	function getMoveStage1(initX, initY) {
-		//get all empty move options from the initial hit
-		var moveOptions = determineMoveOptions(initX, initY);
-		printMoveOptions(moveOptions); //this isn't coming out right either
-		
+	function getMoveStage1(initX, initY, moveOptions) {
 		//choose a random cell from the moveOptions
 		var moveIndex = getRandomInt(0, moveOptions.length - 1);
 		var move = moveOptions[moveIndex];
@@ -736,7 +736,7 @@ function createMovePlan() {
 		//continue hitting options from the first set of move options, until one contains a ship
 		do {
 			console.log(initX + ', ' + initY); //the coordinates from here are correct
-			var currentMove = getMoveStage1(initX, initY);
+			var currentMove = getMoveStage1(initX, initY, moveOptions);
 			var doesMoveHit = doesCellContainPlayerShip(currentMove);
 			console.log("does move hit? " + doesMoveHit);
 		} while (!doesMoveHit);
