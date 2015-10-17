@@ -5,12 +5,12 @@ PLAN - TO DO
 -When Player is placing ship, hover the image of the ship
 -Don't allow illegal ship placements by player
 -Make the computer's guesses smarter after hitting a ship
--Work on CSS to make the gameboard prettier
+-Work on CSS to make the gameboard nice
 -Get rid of Ship heading and rotate button after ships are placed.
 	-maybe instead of hiding buttons, contain all of it in a container and hide the entire thing when ships are placed, 
 	-could put a message window there, instead, to display who the winner is.
 
--Make code more DRY - especially when I have 2 different functions for player & computer that do basically the same thing
--Some functions do many things, make more specific functions.
 
-
+PROBLEMS
+-Problems with click handlers
+-Look at move plan stage 2 , specifically issues with 'current direction' not changing & scope
