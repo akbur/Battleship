@@ -28,12 +28,12 @@ var lastMove = {
 			this.cellMiss = false;
 			this.cellSunk = false;
 		} else if (status === 'sunk') {
+			this.cellSunk = true;
 			this.cellHit = false;
 			this.cellMiss = false;
-			this.cellSunk = true;	
 		} else if (status === 'miss') {
-			this.cellHit = false;
 			this.cellMiss = true;
+			this.cellHit = false;
 			this.cellSunk = false;
 		}
 	},
@@ -228,8 +228,6 @@ function rotateShip() {
 
 /******************* PLAYER PLACE SHIP *********************/
 
-//TODO: CREATE A BUTTON FOR AUTOMATICALLY PLACING PLAYER SHIPS
-
 function PlayerShipPlacement() {
 	getCellClickHandler('player', 'add');
 	getShipClickHandlers();
@@ -366,7 +364,6 @@ function randomizeRotation() {
 	}
 }
 
-//TODO: SEPERATE INTO 3+ SEPERATE FUNCTIONS V 
 function computerPlaceShip(shipName) {
 	//Randomize Ship Rotation
 	if (randomizeRotation()){
@@ -431,14 +428,14 @@ function markComputerCell() {
 	var shipNumberClass = getShipNumberClass();
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
 	
-	if (cellContainsClass(currentCell, 'compship')){
-		if (shipSunk) {
-			markShipSunk(shipNumberClass);
-		} else {
-			markCellHit();
+	if (cellContainsClass(currentCell, 'compship')){ //if cell contains ship
+		if (shipSunk) {						//if hitting this cell should sink the ship
+			markShipSunk(shipNumberClass);	//mark the entire ship as sunk
+		} else {							//if there is a ship, but it doesn't sink
+			markCellHit(); 					//mark cell as a hit
 		}
-	} else {
-		markCellMiss();
+	} else { 								//if the computer cell doesn't contain a ship
+		markCellMiss();						//mark cell as a miss
 	}
 }
 
@@ -475,8 +472,7 @@ function computerTurn() {
 	computerFire();
 }
 
-//now that i think of it, function below may be 
-//unnecessary - check
+//now that i think of it, function below may be unnecessary
 function computerTurnClickHanders() {
 	getCellClickHandler('computer','remove');
 	getCellClickHandler('player', 'add');
@@ -513,6 +509,13 @@ function getRandomPlayerCellCoords() {
 	yCoord = getRandomInt(1, gridSize);
 }
 
+function getSpecificPlayerCoords(movePlan) {
+	var movePlan = movePlan;
+	currentMove = movePlan.shift();
+	xCoord = currentMove.dataset.x;
+	yCoord = currentMove.dataset.y;
+}
+
 function targetPlayerCell(type) {
 	var alreadyMarked;
 	var cell;
@@ -535,37 +538,28 @@ function targetPlayerCell(type) {
 
 function markPlayerCell() {
 	var numCellsHit = 1;
+	var status;
 	var shipNumberClass = getShipNumberClass();
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
 	
 	if (cellContainsClass(currentCell, 'ship')){
 		if (shipSunk) {
-			markShipSunk(shipNumberClass);
-			lastMove.updateStatus("sunk");
+			status = markShipSunk(shipNumberClass);
 		} else {
 			 if(firstHitOnShip(shipNumberClass)) {
 			 	initialHit.recordCoords();
 			 	computerMoveStatus = "targetingSpecificCell";
-			 	tempMovePlan = createMovePlan();
+			 	createMovePlan();
 			 }
-			markCellHit();
-			lastMove.updateStatus("hit");
+			status = markCellHit();
 		}
 	} else {
-		markCellMiss();
-		lastMove.updateStatus("miss");
+		status = markCellMiss();
 	}
+	lastMove.updateStatus(status);
 }
 
 /*************** FOR COMPUTER 'SMARTER' MOVES *********************/
-
-
-function getSpecificPlayerCoords(movePlan) {
-	var movePlan = movePlan;
-	currentMove = movePlan.shift();
-	xCoord = currentMove.dataset.x;
-	yCoord = currentMove.dataset.y;
-}
 
 function createMovePlan() {
 	var movePlan = [];
