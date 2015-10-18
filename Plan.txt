@@ -2,6 +2,8 @@
 
 PLAN - TO DO 
 
+-Read over the standards that Hack Reactor sent for their program / airbnb styling guide?
+
 -When Player is placing ship, hover the image of the ship
 -Don't allow illegal ship placements by player
 -Make the computer's guesses smarter after hitting a ship
@@ -14,3 +16,10 @@ PLAN - TO DO
 PROBLEMS
 -Problems with click handlers
 -Look at move plan stage 2 , specifically issues with 'current direction' not changing & scope
+-figure out a better solution for all these global scope variables
+
+
+
+-combine markplayercell & markcomputercell?
+
+

@@ -771,6 +771,7 @@ function determineMoveDirection(moveCell, initX, initY) {
 	return direction;
 }
 
+//possibly not necessary
 function getNextMoveSameDirection(currentMove, direction) {
 	var x = currentMove.dataset.x;
 	var y = currentMove.dataset.y;
@@ -839,7 +840,7 @@ function cellHasPlayerShip() {
 	return status;
 }
 
-//Adds computer ship class to current cell
+//Adds compship class to current cell
 function cellHasComputerShip() {
 	var status = 'compship';
 	var cellToMark = currentCell;
@@ -863,6 +864,7 @@ function markCellMiss() {
 	return status;
 }
 
+//Adds sunk class to each cell of the current ship
 function markShipSunk(shipNumberClass) {
 	var status = 'sunk';
 	var sameShip = document.getElementsByClassName(shipNumberClass);
