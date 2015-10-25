@@ -15,11 +15,19 @@ PLAN - TO DO
 
 PROBLEMS
 -Problems with click handlers
--Look at move plan stage 2 , specifically issues with 'current direction' not changing & scope
+-Need to remove the ship placement click handler after the ships are placed
+(i think that should solve the problem)
 -figure out a better solution for all these global scope variables
-
-
 
 -combine markplayercell & markcomputercell?
 
+WITH COMPUTER CHOICES:
+-Seems to work as long as all are seperate until the ship is sunk
+-Need to stop choosing moves from the plan and go back to random
+	whenever the ship would be sunk (since at the time of making the move plan
+	we haven't fired yet)
+-Need to make sure direction also changes when we run into a wall
+-Need to make corrections for if the ships are placed together, such as checking
+	to see if ships have been hit & not sunk (which could happen if ships are
+	touching)
 
