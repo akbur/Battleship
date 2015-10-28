@@ -39,7 +39,7 @@ var lastMove = {
 };
 
 var nextMove = {
-	stage: 1,
+	stage: 0,
 	status: 'continueDirection',
 	direction: "",
 	getOppositeDirection: function() {;
@@ -47,10 +47,20 @@ var nextMove = {
 	},
 	setMove: function(move){
 		this.move = move;
+		console.log('nextMove.setMove: ' + this.move.dataset.x + " , " + this.move.dataset.y);
 	},
 	getMove: function() {
+		console.log("getting move");
 		return this.move;
-	}
+	},
+	determineStage: function() {
+		if (this.stage === 1) {
+			if (compMove.stage1Plan.length === 0) {
+				this.stage = 2;
+			}
+		}
+
+	},
 }
 
 var initialHit = {
@@ -59,7 +69,8 @@ var initialHit = {
 	recordCoords: function() {
 		this.cellXCoord = currentCell.dataset.x;
 		this.cellYCoord = currentCell.dataset.y;
-		console.log("initialHit: " + this.cellXCoord + ', ' + this.cellYCoord);
+		nextMove.stage = 0;
+		console.log("INITIAL HIT: " + this.cellXCoord + ', ' + this.cellYCoord);
 	},
 };
 
@@ -133,14 +144,12 @@ function getPlayerCellFromEvent() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
 	currentCell = getCell('player', x, y);
-	console.log("currentCell = playercell: (" + currentCell.dataset.x + ", " + currentCell.dataset.y + ")");
 }
 
 function getComputerCellFromEvent() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
 	currentCell = getCell('computer', x, y);
-	console.log("currentCell = computercell: (" + currentCell.dataset.x + ", " + currentCell.dataset.y + ")");
 }
 
 function getCellClickHandler(user, addOrRemove) {
@@ -428,7 +437,6 @@ function removeShipPlacementClickHandlers() {
 /******************* PLAYER TURN *****************************/
 
 function playerTurn() {
-	console.log("Player's Turn!");
 	playerTurnClickHandlers();
 }
 
@@ -497,7 +505,6 @@ function getShipNumberClass() {
 
 function computerTurn() {
 	computerTurnClickHanders();
-	console.log("Computer's turn!");
 	computerFire();
 }
 
@@ -506,7 +513,6 @@ function computerTurnClickHanders() {
 }
 
 function computerFire() {
-	console.log("computer firing.");
 	currentCell	= determineTypeOfFire();
 	console.log("currentCell: (" + currentCell.dataset.x + ", " + currentCell.dataset.y + ")");
 	markPlayerCell();
@@ -514,12 +520,12 @@ function computerFire() {
 }
 
 function determineTypeOfFire() {
-	console.log("determining type of fire");
 	//if the ship computer has been targeting is sunk
 	//change the status back to random
 	if (cellContainsClass(currentCell, 'sunk')) {
 		compMove.status = "targetingRandomCell";
 	}
+	console.log("compMove.status: " + compMove.status);
 	//then determine type of fire based on status
 	if (compMove.status === "targetingRandomCell") {
 		return targetPlayerCell("random");
@@ -568,7 +574,6 @@ function markPlayerCell() {
 			 if(firstHitOnShip(shipNumberClass)) {
 			 	initialHit.recordCoords();
 			 	compMove.status = "targetingSpecificCell";
-			 	compMove.updatePlan();
 			 }
 			status = markCellHit();
 		}
@@ -579,39 +584,54 @@ function markPlayerCell() {
 }
 
 function getSpecificPlayerCoords() {
-	var move = compMove.plan.shift();
+	if (nextMove.stage === 0){
+		createPlanStage1();
+	} 
+	if (nextMove.stage === 1){
+		getNextMoveFromPlan();
+	}
+	if (nextMove.stage === 2) {
+		createPlanStage2();
+	}
+	
+	//set coords to make next move
+	var move = nextMove.getMove();
 	xCoord = move.dataset.x;
 	yCoord = move.dataset.y;
+
+	nextMove.determineStage();
+
+	//DEBUG
+		console.log("nextMove: (" + xCoord + ", " + yCoord + ")");
+	//END DEBUG
 }
 
 /*************** FOR COMPUTER 'SMARTER' MOVES *********************/
 
 compMove = {
-	plan: [],
-	status: "targetingRandomCell",
-
-	updatePlan: function () {
-		var lastMove = planStage1();
-		planStage2(lastMove);
-	},
-	//DEBUG
+	status: "targetingRandomCell", 	//only initially
+	stage1Plan: [],
 	printPlan: function() {
-		for (var i = 0; i < this.plan.length; i++) {
-			console.log("movePlan[" + i + "]: " + this.plan[i].dataset.x + ", " + this.plan[i].dataset.y);
+		for (var i = 0; i < this.stage1Plan.length; i++) {
+			console.log('stage1Plan['+ i + ']: (' + this.stage1Plan[i].dataset.x + ',' + this.stage1Plan[i].dataset.y + ')');
 		}
+	},
+	setLastStage1Move: function(move) {
+		this.lastMove = move;
+	}, 
+	getLastStage1Move: function() {
+		return this.lastMove;
 	},
 };
 
-	//DEBUG
-	function printMoveOptions(moveOptions) {
-		for (var i = 0; i < moveOptions.length; i++) {
-			console.log("moveOptions[" + i + "]: " + moveOptions[i].dataset.x + ", " + moveOptions[i].dataset.y);
-		}
+function getNextMoveFromPlan() {
+	//set the next move to the first move on the plan
+	//and remove it from the plan
+	compMove.printPlan();
+	nextMove.setMove(compMove.stage1Plan.shift());
 	}
 
-/***** ***** ***** 	Begin Stage 1 	***** ***** *****/
-
-function planStage1() {
+function createPlanStage1() {
 	var initX = initialHit.cellXCoord;
 	var initY = initialHit.cellYCoord;
 
@@ -619,24 +639,19 @@ function planStage1() {
 	var moveOptions = determineMoveOptions(initX, initY);
 	printMoveOptions(moveOptions);  //DEBUG
 
-	//continue hitting options from the first set of move options, until one contains a ship
+	//continue adding options from the first set of move options, until one contains a ship
 	do {
 		//get move
-		var currentMove = getMoveStage1(initX, initY, moveOptions);
+		var currentMove = getMoveForPlan(initX, initY, moveOptions);
 		//add move to movePlan
-		compMove.plan.push(currentMove);
+		compMove.stage1Plan.push(currentMove);
 		//test to see if the move hits
 		var doesMoveHit = cellContainsClass(currentMove, 'ship');
-
-		//DEBUG
-		printMoveOptions(moveOptions);
-		compMove.printPlan();
-		console.log("does move hit? " + doesMoveHit);
-		//END DEBUG
-
+		console.log("Does the move we added to the plan hit?: " + doesMoveHit);
 	} while (!doesMoveHit); //do the above while move doesn't hit
 
-	return currentMove;
+	nextMove.stage = 1;
+	compMove.setLastStage1Move(currentMove);
 }
 
 function determineMoveOptions(x, y) {
@@ -647,7 +662,6 @@ function determineMoveOptions(x, y) {
 	for (var i = 0; i < directions.length; i++){
 		//if the adjacent cell exists, get and assign it
 		if (hasAdjacentCell(directions[i], x, y)) {
-			console.log("has adjacent cell " + directions[i]);
 			var adjacentCell = getAdjacentCell2(directions[i], x, y);
 			//if the cell is empty, push is to the moveOptions array
 			if (isCellEmpty(adjacentCell)) {
@@ -658,7 +672,7 @@ function determineMoveOptions(x, y) {
 	return moveOptions;
 }
 
-function getMoveStage1(initX, initY, moveOptions) {
+function getMoveForPlan(initX, initY, moveOptions) {
 	//choose a random cell from the moveOptions
 	var moveIndex = getRandomInt(0, moveOptions.length - 1);
 	var move = moveOptions[moveIndex];
@@ -667,21 +681,23 @@ function getMoveStage1(initX, initY, moveOptions) {
 	//determine the direction the first move was in, for future moves
 	var currentDirection = determineMoveDirection(move, initX, initY);
 	nextMove.direction = currentDirection;
-	
-	//DEBUG
+
 	console.log("chosen random cell from move options: " + move.dataset.x + ", " + move.dataset.y);
-	console.log("current direction: " + currentDirection);
-	//END DEBUG
 
 	return move;
 }
 
-/*****  ***** ***** Begin Stage 2: Everything after 2 consecutive cells are hit *****/
+function createPlanStage2() {
+	//DEBUG
+		console.log("stage 2 comes here, just checking stage 1 first...");
+		var cell = getCell('player', 10, 10);
+		nextMove.setMove(cell);
+		compMove.status = "targetingRandomCell";
 
-
-function planStage2(currentMove) {
-	var initX = initialHit.cellXCoord;
+	//END DEBUG
+	/*var initX = initialHit.cellXCoord;
 	var initY = initialHit.cellYCoord;
+	var currentMove = compMove.getLastStage1Move();
 	var currentDirection = nextMove.direction;
 	var oppositeDirection = nextMove.getOppositeDirection();
 
@@ -691,7 +707,7 @@ function planStage2(currentMove) {
 		currentMove = getMoveStage2(currentMove.dataset.x, currentMove.dataset.y, currentMove);
 		compMove.plan.push(currentMove);
 		compMove.printPlan(); //DEBUG
-	 } while ( compMove.plan.length < 7) // an arbitrary number, to use for now
+	 } while ( compMove.plan.length < 7) // an arbitrary number, to use for now*/
 }
 
 function getMoveStage2(x, y, currentMove) {
@@ -771,7 +787,6 @@ function getAdjacentCell2(direction, x, y) {
 	} else if (direction === 'down') {
 		y -= 1;
 	}
-	console.log("getting adjacent cell @ (" + x + ", " + y +")");	
 	var cell = getCell('player', x, y);
 	return cell;
 }
@@ -793,7 +808,6 @@ function determineMoveDirection(moveCell, initX, initY) {
 	return direction;
 }
 
-//possibly not necessary
 function getNextMoveSameDirection(currentMove, direction) {
 	var x = currentMove.dataset.x;
 	var y = currentMove.dataset.y;
@@ -895,3 +909,13 @@ function markShipSunk(shipNumberClass) {
 	}
 	return status;
 }
+
+//DEBUG
+function printMoveOptions(moveOptions) {
+	for (var i = 0; i < moveOptions.length; i++) {
+		console.log("moveOptions[" + i + "]: " + moveOptions[i].dataset.x + ", " + moveOptions[i].dataset.y);
+	}
+}
+
+
+
