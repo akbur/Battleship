@@ -16,6 +16,7 @@ PLAN - TO DO
 PROBLEMS
 -Problems with click handlers
 -Need to remove the ship placement click handler after the ships are placed
+-kind of seems like i need to somehow remove the last one clicked? like after i place the last one, usually the carrier it stays on my mouse so i can keep placing it over and over.) 
 (i think that should solve the problem)
 -figure out a better solution for all these global scope variables
 
@@ -23,6 +24,10 @@ PROBLEMS
 
 WITH COMPUTER CHOICES:
 -Seems to work as long as all are seperate until the ship is sunk
+	-maybe to initial hit object i can add the ship number and then
+	-check to see if that ship number is sunk, or all the ships that have been hit and if there is a ship that has been hit and hasn't been sunk, begin the 
+	entire process on THAT ship using the initial hit on THAT ship.
+
 -Need to stop choosing moves from the plan and go back to random
 	whenever the ship would be sunk (since at the time of making the move plan
 	we haven't fired yet)

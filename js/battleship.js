@@ -1,4 +1,6 @@
 
+/***** VARIABLES *****/
+
 var gridSize = 10;
 var numShipsPlaced = 0;
 var numberOfShips = 5;
@@ -69,6 +71,8 @@ var initialHit = {
 	},
 };
 
+/**** GAMEPLAY *****/
+
 setupGame();
 
 function setupGame() {
@@ -80,24 +84,26 @@ function setupGame() {
 
 function shipPlacement() {
 	computerShipPlacement();
-	PlayerShipPlacement();
+	playerShipPlacement();
 }
 
 function testShipPlacementComplete(callback) {
 	var allShipsPlaced = allPlayerShipsPlaced();
 	//if all ships have been placed
 	if (allShipsPlaced) {
-		//ADD FUNCTION HERE TO REMOVE HEADING & ROTATE BUTTON
 		//callback will be to beginRounds
-		getShipClickHandlers('remove');
 		callback();
 	}
 }
 
 function beginRounds() {
+	removeShipPlacementClickHandlers();
+	//ADD FUNCTION HERE TO REMOVE HEADING & ROTATE BUTTON
 	playerTurn();
 	//computerTurn will be called when playerTurn complete
 }
+
+//add some cleanup here
 
 /***************** SETUP *******************************/
 
@@ -217,24 +223,6 @@ function removeShipButton() {
 	buttonToHide.style.visibility='hidden'; 
 }
 
-function getShipFromEvent() {
-	currentShipName = this.dataset.name;
-	currentShipSize = this.dataset.size;
-}
-
-function getShipClickHandlers(addOrRemove) {
-	var shipButtons = document.getElementsByClassName('ship-button');
-	for (var i = 0; i < shipButtons.length; i++){
-		if (addOrRemove === 'add') {
-			shipButtons[i].addEventListener('click', getShipFromEvent);
-			shipButtons[i].addEventListener("click", shipPlacementClickHandler);	
-		} else if (addOrRemove === 'remove') {
-			shipButtons[i].removeEventListener('click', getShipFromEvent);
-			shipButtons[i].removeEventListener("click", shipPlacementClickHandler);
-		}	
-	}
-}
-
 function addRotateButton() {
 	var rotateDiv = document.getElementById('rotate-button-div');
 	var rotateButton = document.createElement('button');
@@ -252,80 +240,8 @@ function rotateShip() {
 	}
 }
 
-/******************* PLAYER PLACE SHIP *********************/
-
-function PlayerShipPlacement() {
-	getCellClickHandler('player', 'add');
-	getShipClickHandlers('add');
-}
-
-function markAdjacentCell(user){
-	currentCell = getAdjacentCell(user);
-	addShipNumberClass();
-	if (user === 'player') {
-		cellHasPlayerShip();
-	} else if (user ==='computer') {
-		cellHasComputerShip();
-	}
-}
-
-function addShipNumberClass() {
-	var shipNumberClass = " ship_number_" + numShipsPlaced;
-	currentCell.className += shipNumberClass;
-}
-
-function playerPlaceShip() {
-	cellHasPlayerShip();
-	addShipNumberClass();
-	var shipSize = currentShipSize;
-	for (var i = 1; i < shipSize; i++) {
-		markAdjacentCell("player");
-	}
-}
-
-function statusPlayerPlaceShips() {
-//	if (shipPlacementLegal) {
-		numShipsPlaced++;
-		playerPlaceShip();
-		removeShipButton();
-		testShipPlacementComplete(beginRounds);
-//	}
-}
-
-function shipPlacementClickHandler() {
-	forEachCell('player', function(cell){
-		cell.addEventListener("mouseover", mouseoverText);
-		cell.addEventListener("click", statusPlayerPlaceShips);
-	});
-}
-
-//THIS ISN'T WORKING STILL
-//ALSO CHECK IF SHIP IS ALREADY THERE >>> 
-function shipPlacementLegal() {
-	
-	if (shipDirection === 'horizontal') {
-		if (this.dataset.x <= gridSize - this.dataset.size) {
-			return true;
-		}
-	} else if (shipDirection === 'vertical') {
-		if (this.dataset.y <= gridSize - this.dataset.size) {
-			return true;
-		}
-	} else return false;
-}
-
-//TEMPORARY
-//NEED TO ADD HOVER STILL SO PLAYER CAN SEE
-//WHERE THEY ARE ABOUT TO PLACE SHIP
-function mouseoverText() {
-	//Trade this later for hovering ship before placement
-}
-
-function allPlayerShipsPlaced() {
-	return (numShipsPlaced === (numberOfShips*2));
-}
-
 /***************** COMPUTER SHIP PLACEMENT***********************/
+//comp ship placement happens immediately upon page load
 
 function computerShipPlacement() {
 	computerPlaceShip('patrol');
@@ -424,6 +340,99 @@ function getShipSize(shipName) {
 	return shipSize;
 }
 
+/******************* PLAYER PLACE SHIP *********************/
+
+function playerShipPlacement() {
+	getCellClickHandler('player', 'add');
+	addShipPlacementClickHandlers();
+}
+
+function addShipPlacementClickHandlers() {
+	//ship button click handlers
+	var shipButtons = document.getElementsByClassName('ship-button');
+	for (var i = 0; i < shipButtons.length; i++){
+		shipButtons[i].addEventListener('click', getShipFromClick);
+	}	
+
+	//cell click handlers
+	forEachCell('player', function(cell){
+		cell.addEventListener("click", statusPlayerPlaceShips);
+	});
+}
+
+function getShipFromClick() {
+	currentShipName = this.dataset.name;
+	currentShipSize = this.dataset.size;
+}
+
+function statusPlayerPlaceShips() {
+//	if (shipPlacementLegal) {
+		numShipsPlaced++;
+		playerPlaceShip();
+		removeShipButton();
+		testShipPlacementComplete(beginRounds);
+//	}
+}
+
+function playerPlaceShip() {
+	cellHasPlayerShip();
+	addShipNumberClass();
+	var shipSize = currentShipSize;
+	for (var i = 1; i < shipSize; i++) {
+		markAdjacentCell("player");
+	}
+}
+
+function addShipNumberClass() {
+	var shipNumberClass = " ship_number_" + numShipsPlaced;
+	currentCell.className += shipNumberClass;
+}
+
+function markAdjacentCell(user){
+	currentCell = getAdjacentCell(user);
+	addShipNumberClass();
+	if (user === 'player') {
+		cellHasPlayerShip();
+	} else if (user ==='computer') {
+		cellHasComputerShip();
+	}
+}
+
+//THIS ISN'T WORKING STILL
+//ALSO CHECK IF SHIP IS ALREADY THERE >>> 
+function shipPlacementLegal() {
+	
+	if (shipDirection === 'horizontal') {
+		if (this.dataset.x <= gridSize - this.dataset.size) {
+			return true;
+		}
+	} else if (shipDirection === 'vertical') {
+		if (this.dataset.y <= gridSize - this.dataset.size) {
+			return true;
+		}
+	} else return false;
+}
+
+
+function allPlayerShipsPlaced() {
+	//(numberOfShips*2) because counting computer ships and player ships
+	return (numShipsPlaced === (numberOfShips*2));
+}
+
+//for removing click handlers after ship placement status has ended
+function removeShipPlacementClickHandlers() {
+	//cell click handlers
+	forEachCell('player', function(cell){
+		cell.removeEventListener("click", statusPlayerPlaceShips);
+	});
+
+	//ship button click handlers
+	var shipButtons = document.getElementsByClassName('ship-button');
+	for (var i = 0; i < shipButtons.length; i++){
+		shipButtons[i].removeEventListener('click', getShipFromClick);
+	}	
+}
+
 /******************* PLAYER TURN *****************************/
 
 function playerTurn() {
@@ -432,7 +441,7 @@ function playerTurn() {
 }
 
 function playerTurnClickHandlers() {
-	//getCellClickHandler('player', 'remove');
+	getCellClickHandler('player', 'remove');
 	getCellClickHandler('computer', 'add');
 	playerFireClickHandler();
 }
