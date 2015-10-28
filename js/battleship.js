@@ -9,9 +9,6 @@ var currentShipName, currentShipSize, currentCell;
 var xCoordLimit = gridSize;
 var yCoordLimit = gridSize;
 var xCoord, yCoord;
-var computerMoveStatus = "targetingRandomCell";
-var tempMovePlan = [];
-//other possible status = "targetingSpecificCell";
 
 var lastMove = {
 	cellHit: false,
@@ -526,14 +523,14 @@ function determineTypeOfFire() {
 	//if the ship computer has been targeting is sunk
 	//change the status back to random
 	if (cellContainsClass(currentCell, 'sunk')) {
-		computerMoveStatus = "targetingRandomCell";
+		compMove.status = "targetingRandomCell";
 	}
 	//then determine type of fire based on status
-	if (computerMoveStatus === "targetingRandomCell") {
+	if (compMove.status === "targetingRandomCell") {
 		return targetPlayerCell("random");
 	
 	//marked as this after an initial hit on a ship
-	} else if (computerMoveStatus === "targetingSpecificCell") {
+	} else if (compMove.status === "targetingSpecificCell") {
 		return targetPlayerCell("specific");
 	}
 }
@@ -544,8 +541,7 @@ function getRandomPlayerCellCoords() {
 }
 
 function getSpecificPlayerCoords() {
-	var movePlan = tempMovePlan;
-	var move = movePlan.shift();
+	var move = compMove.plan.shift();
 	xCoord = move.dataset.x;
 	yCoord = move.dataset.y;
 }
@@ -582,8 +578,8 @@ function markPlayerCell() {
 		} else {
 			 if(firstHitOnShip(shipNumberClass)) {
 			 	initialHit.recordCoords();
-			 	computerMoveStatus = "targetingSpecificCell";
-			 	tempMovePlan = createMovePlan();
+			 	compMove.status = "targetingSpecificCell";
+			 	compMove.updatePlan();
 			 }
 			status = markCellHit();
 		}
@@ -595,31 +591,32 @@ function markPlayerCell() {
 
 /*************** FOR COMPUTER 'SMARTER' MOVES *********************/
 
-function createMovePlan() {
-	var movePlan = [];
-	var lastMove = createMovePlanStage1(movePlan);
-	createMovePlanStage2(movePlan, lastMove);
+compMove = {
+	plan: [],
+	status: "targetingRandomCell",
 
-	return movePlan;
-}
-
-/******DEBUG MOVE PLAN*********/
-	function printMovePlan(movePlan) {
-		for (var i = 0; i < movePlan.length; i++) {
-			console.log("movePlan[" + i + "]: " + movePlan[i].dataset.x + ", " + movePlan[i].dataset.y);
+	updatePlan: function () {
+		var lastMove = planStage1();
+		planStage2(lastMove);
+	},
+	//DEBUG
+	printPlan: function() {
+		for (var i = 0; i < this.plan.length; i++) {
+			console.log("movePlan[" + i + "]: " + this.plan[i].dataset.x + ", " + this.plan[i].dataset.y);
 		}
-	}
+	},
+};
 
+	//DEBUG
 	function printMoveOptions(moveOptions) {
 		for (var i = 0; i < moveOptions.length; i++) {
 			console.log("moveOptions[" + i + "]: " + moveOptions[i].dataset.x + ", " + moveOptions[i].dataset.y);
 		}
 	}
-/****** END DEBUG MOVE PLAN ******/
 
 /***** ***** ***** 	Begin Stage 1 	***** ***** *****/
 
-function createMovePlanStage1(movePlan) {
+function planStage1() {
 	var initX = initialHit.cellXCoord;
 	var initY = initialHit.cellYCoord;
 
@@ -632,13 +629,13 @@ function createMovePlanStage1(movePlan) {
 		//get move
 		var currentMove = getMoveStage1(initX, initY, moveOptions);
 		//add move to movePlan
-		movePlan.push(currentMove);
+		compMove.plan.push(currentMove);
 		//test to see if the move hits
 		var doesMoveHit = cellContainsClass(currentMove, 'ship');
 
 		//DEBUG
 		printMoveOptions(moveOptions);
-		printMovePlan(movePlan);
+		compMove.printPlan();
 		console.log("does move hit? " + doesMoveHit);
 		//END DEBUG
 
@@ -687,7 +684,7 @@ function getMoveStage1(initX, initY, moveOptions) {
 /*****  ***** ***** Begin Stage 2: Everything after 2 consecutive cells are hit *****/
 
 
-function createMovePlanStage2(movePlan, currentMove) {
+function planStage2(currentMove) {
 	var initX = initialHit.cellXCoord;
 	var initY = initialHit.cellYCoord;
 	var currentDirection = nextMove.getDirection();
@@ -697,10 +694,9 @@ function createMovePlanStage2(movePlan, currentMove) {
 	console.log('initial coords: '+ initX +', ' + initY +', currentMove: (' + currentMove.dataset.x + ', ' + currentMove.dataset.y + '), currentDirection: ' + currentDirection);
 	do {
 		currentMove = getMoveStage2(currentMove.dataset.x, currentMove.dataset.y, currentMove);
-		movePlan.push(currentMove);
-		printMovePlan(movePlan); //DEBUG
-	 } while ( movePlan.length < 7) // an arbitrary number, to use for now
-		return movePlan;	
+		compMove.plan.push(currentMove);
+		compMove.printPlan(); //DEBUG
+	 } while ( compMove.plan.length < 7) // an arbitrary number, to use for now
 }
 
 function getMoveStage2(x, y, currentMove) {
