@@ -6,8 +6,9 @@ h1, h2, h3 {
 h3 {
 	font-size:1.5em;
 }
+
 body {
-	background-color: SteelBlue;
+	background-color: lightGrey;
 }
 
 .grid-container {
@@ -27,19 +28,15 @@ body {
 /* GRID CELL COLORS FOR DIFF STATES */
 
 .grid-cell {
-	background-color:white;
+	background-color:SteelBlue;
 	height: 35px;
 	width: 35px;
 	float: left;
 	border: 1px solid black;
 }
 
-.grid-cell:hover {
-	background-color: lightGray;
-}
-
 .ship {
-	background-color: DarkOliveGreen;
+	background-color: DarkGrey;
 }
 
 .compship {
@@ -52,7 +49,7 @@ body {
 
 
 .miss {
-	background-color:darkGray;
+	background-color: #23415A;
 }
 
 .sunk {

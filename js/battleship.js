@@ -1,4 +1,6 @@
 
+/***** VARIABLES *****/
+
 var gridSize = 10;
 var numShipsPlaced = 0;
 var numberOfShips = 5;
@@ -39,6 +41,26 @@ var lastMove = {
 	},
 };
 
+var nextMove = {
+	status: 'continueDirection',
+	setStatus: function (status) {
+		this.status = status;
+	},
+	getStatus: function() {
+		return this.status;
+	},
+	setDirection: function(direction) {
+		this.direction = direction;
+	},
+	getDirection: function () {
+		return this.direction;
+	},
+	getOppositeDirection: function() {
+		var currentDirection = this.getDirection();
+		return getOppositeDirection(currentDirection);
+	}
+}
+
 var initialHit = {
 	cellXCoord: 0,
 	cellYCoord: 0,
@@ -48,6 +70,8 @@ var initialHit = {
 		console.log("initialHit: " + this.cellXCoord + ', ' + this.cellYCoord);
 	},
 };
+
+/**** GAMEPLAY *****/
 
 setupGame();
 
@@ -60,23 +84,26 @@ function setupGame() {
 
 function shipPlacement() {
 	computerShipPlacement();
-	PlayerShipPlacement();
+	playerShipPlacement();
 }
 
 function testShipPlacementComplete(callback) {
 	var allShipsPlaced = allPlayerShipsPlaced();
 	//if all ships have been placed
 	if (allShipsPlaced) {
-		//ADD FUNCTION HERE TO REMOVE HEADING & ROTATE BUTTON
 		//callback will be to beginRounds
 		callback();
 	}
 }
 
 function beginRounds() {
+	removeShipPlacementClickHandlers();
+	//ADD FUNCTION HERE TO REMOVE HEADING & ROTATE BUTTON
 	playerTurn();
 	//computerTurn will be called when playerTurn complete
 }
+
+//add some cleanup here
 
 /***************** SETUP *******************************/
 
@@ -196,19 +223,6 @@ function removeShipButton() {
 	buttonToHide.style.visibility='hidden'; 
 }
 
-function getShipFromEvent() {
-	currentShipName = this.dataset.name;
-	currentShipSize = this.dataset.size;
-}
-
-function getShipClickHandlers() {
-	var shipButtons = document.getElementsByClassName('ship-button');
-	for (var i = 0; i < shipButtons.length; i++){
-		shipButtons[i].addEventListener('click', getShipFromEvent);
-		shipButtons[i].addEventListener("click", shipPlacementClickHandler);
-	}
-}
-
 function addRotateButton() {
 	var rotateDiv = document.getElementById('rotate-button-div');
 	var rotateButton = document.createElement('button');
@@ -226,80 +240,8 @@ function rotateShip() {
 	}
 }
 
-/******************* PLAYER PLACE SHIP *********************/
-
-function PlayerShipPlacement() {
-	getCellClickHandler('player', 'add');
-	getShipClickHandlers();
-}
-
-function markAdjacentCell(user){
-	currentCell = getAdjacentCell(user);
-	addShipNumberClass();
-	if (user === 'player') {
-		cellHasPlayerShip();
-	} else if (user ==='computer') {
-		cellHasComputerShip();
-	}
-}
-
-function addShipNumberClass() {
-	var shipNumberClass = " ship_number_" + numShipsPlaced;
-	currentCell.className += shipNumberClass;
-}
-
-function playerPlaceShip() {
-	cellHasPlayerShip();
-	addShipNumberClass();
-	var shipSize = currentShipSize;
-	for (var i = 1; i < shipSize; i++) {
-		markAdjacentCell("player");
-	}
-}
-
-function statusPlayerPlaceShips() {
-//	if (shipPlacementLegal) {
-		numShipsPlaced++;
-		playerPlaceShip();
-		removeShipButton();
-		testShipPlacementComplete(beginRounds);
-//	}
-}
-
-function shipPlacementClickHandler() {
-	forEachCell('player', function(cell){
-		cell.addEventListener("mouseover", mouseoverText);
-		cell.addEventListener("click", statusPlayerPlaceShips);
-	});
-}
-
-//THIS ISN'T WORKING STILL
-//ALSO CHECK IF SHIP IS ALREADY THERE >>> 
-function shipPlacementLegal() {
-	
-	if (shipDirection === 'horizontal') {
-		if (this.dataset.x <= gridSize - this.dataset.size) {
-			return true;
-		}
-	} else if (shipDirection === 'vertical') {
-		if (this.dataset.y <= gridSize - this.dataset.size) {
-			return true;
-		}
-	} else return false;
-}
-
-//TEMPORARY
-//NEED TO ADD HOVER STILL SO PLAYER CAN SEE
-//WHERE THEY ARE ABOUT TO PLACE SHIP
-function mouseoverText() {
-	//Trade this later for hovering ship before placement
-}
-
-function allPlayerShipsPlaced() {
-	return (numShipsPlaced === (numberOfShips*2));
-}
-
 /***************** COMPUTER SHIP PLACEMENT***********************/
+//comp ship placement happens immediately upon page load
 
 function computerShipPlacement() {
 	computerPlaceShip('patrol');
@@ -398,6 +340,99 @@ function getShipSize(shipName) {
 	return shipSize;
 }
 
+/******************* PLAYER PLACE SHIP *********************/
+
+function playerShipPlacement() {
+	getCellClickHandler('player', 'add');
+	addShipPlacementClickHandlers();
+}
+
+function addShipPlacementClickHandlers() {
+	//ship button click handlers
+	var shipButtons = document.getElementsByClassName('ship-button');
+	for (var i = 0; i < shipButtons.length; i++){
+		shipButtons[i].addEventListener('click', getShipFromClick);
+	}	
+
+	//cell click handlers
+	forEachCell('player', function(cell){
+		cell.addEventListener("click", statusPlayerPlaceShips);
+	});
+}
+
+function getShipFromClick() {
+	currentShipName = this.dataset.name;
+	currentShipSize = this.dataset.size;
+}
+
+function statusPlayerPlaceShips() {
+//	if (shipPlacementLegal) {
+		numShipsPlaced++;
+		playerPlaceShip();
+		removeShipButton();
+		testShipPlacementComplete(beginRounds);
+//	}
+}
+
+function playerPlaceShip() {
+	cellHasPlayerShip();
+	addShipNumberClass();
+	var shipSize = currentShipSize;
+	for (var i = 1; i < shipSize; i++) {
+		markAdjacentCell("player");
+	}
+}
+
+function addShipNumberClass() {
+	var shipNumberClass = " ship_number_" + numShipsPlaced;
+	currentCell.className += shipNumberClass;
+}
+
+function markAdjacentCell(user){
+	currentCell = getAdjacentCell(user);
+	addShipNumberClass();
+	if (user === 'player') {
+		cellHasPlayerShip();
+	} else if (user ==='computer') {
+		cellHasComputerShip();
+	}
+}
+
+//THIS ISN'T WORKING STILL
+//ALSO CHECK IF SHIP IS ALREADY THERE >>> 
+function shipPlacementLegal() {
+	
+	if (shipDirection === 'horizontal') {
+		if (this.dataset.x <= gridSize - this.dataset.size) {
+			return true;
+		}
+	} else if (shipDirection === 'vertical') {
+		if (this.dataset.y <= gridSize - this.dataset.size) {
+			return true;
+		}
+	} else return false;
+}
+
+
+function allPlayerShipsPlaced() {
+	//(numberOfShips*2) because counting computer ships and player ships
+	return (numShipsPlaced === (numberOfShips*2));
+}
+
+//for removing click handlers after ship placement status has ended
+function removeShipPlacementClickHandlers() {
+	//cell click handlers
+	forEachCell('player', function(cell){
+		cell.removeEventListener("click", statusPlayerPlaceShips);
+	});
+
+	//ship button click handlers
+	var shipButtons = document.getElementsByClassName('ship-button');
+	for (var i = 0; i < shipButtons.length; i++){
+		shipButtons[i].removeEventListener('click', getShipFromClick);
+	}	
+}
+
 /******************* PLAYER TURN *****************************/
 
 function playerTurn() {
@@ -428,17 +463,18 @@ function markComputerCell() {
 	var shipNumberClass = getShipNumberClass();
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
 	
-	if (cellContainsClass(currentCell, 'compship')){ //if cell contains ship
-		if (shipSunk) {						//if hitting this cell should sink the ship
+	if (cellContainsClass(currentCell, 'compship')){ //if the computer cell contains ship
+		if (shipSunk) {						//if hitting this cell should sink that ship
 			markShipSunk(shipNumberClass);	//mark the entire ship as sunk
-		} else {							//if there is a ship, but it doesn't sink
-			markCellHit(); 					//mark cell as a hit
+		} else {							//else if the hit shouldn't sink that ship
+			markCellHit(); 					//mark the cell as a hit
 		}
 	} else { 								//if the computer cell doesn't contain a ship
 		markCellMiss();						//mark cell as a miss
 	}
 }
 
+//checks to see if all of the cells a particular ship have been hit
 function isShipSunk(numCellsHit, shipNumberClass) {
 	var sameShip = document.getElementsByClassName(shipNumberClass);
 	var shipSize = sameShip.length;
@@ -453,6 +489,7 @@ function isShipSunk(numCellsHit, shipNumberClass) {
 	return false;
 }
 
+//returns the ship number of the current ship cell
 function getShipNumberClass() {
 	var cell = currentCell;
 	var shipNumberClass = '';
@@ -472,17 +509,14 @@ function computerTurn() {
 	computerFire();
 }
 
-//now that i think of it, function below may be unnecessary
 function computerTurnClickHanders() {
-	getCellClickHandler('computer','remove');
 	getCellClickHandler('player', 'add');
 }
 
 function computerFire() {
 	console.log("computer firing.");
 	currentCell	= determineTypeOfFire();
-	console.log("current cell:" + currentCell);
-
+	console.log("currentCell: (" + currentCell.dataset.x + ", " + currentCell.dataset.y + ")");
 	markPlayerCell();
 	playerTurn();
 }
@@ -509,11 +543,11 @@ function getRandomPlayerCellCoords() {
 	yCoord = getRandomInt(1, gridSize);
 }
 
-function getSpecificPlayerCoords(movePlan) {
-	var movePlan = movePlan;
-	currentMove = movePlan.shift();
-	xCoord = currentMove.dataset.x;
-	yCoord = currentMove.dataset.y;
+function getSpecificPlayerCoords() {
+	var movePlan = tempMovePlan;
+	var move = movePlan.shift();
+	xCoord = move.dataset.x;
+	yCoord = move.dataset.y;
 }
 
 function targetPlayerCell(type) {
@@ -528,7 +562,7 @@ function targetPlayerCell(type) {
 		} while (alreadyMarked);
 	
 	} else if (type === 'specific') {
-		getSpecificPlayerCoords(tempMovePlan);
+		getSpecificPlayerCoords();
 		cell = getCell('player', xCoord, yCoord);
 	}
 
@@ -549,7 +583,7 @@ function markPlayerCell() {
 			 if(firstHitOnShip(shipNumberClass)) {
 			 	initialHit.recordCoords();
 			 	computerMoveStatus = "targetingSpecificCell";
-			 	createMovePlan();
+			 	tempMovePlan = createMovePlan();
 			 }
 			status = markCellHit();
 		}
@@ -563,16 +597,13 @@ function markPlayerCell() {
 
 function createMovePlan() {
 	var movePlan = [];
-	var currentDirection;
-	var oppositeDirection;
-	var initX = initialHit.cellXCoord;
-	var initY = initialHit.cellYCoord;
+	var lastMove = createMovePlanStage1(movePlan);
+	createMovePlanStage2(movePlan, lastMove);
 
-	//get all empty move options from the initial hit
-	var moveOptions = determineMoveOptions(initX, initY);
-	printMoveOptions(moveOptions);
+	return movePlan;
+}
 
-	//for DEBUG
+/******DEBUG MOVE PLAN*********/
 	function printMovePlan(movePlan) {
 		for (var i = 0; i < movePlan.length; i++) {
 			console.log("movePlan[" + i + "]: " + movePlan[i].dataset.x + ", " + movePlan[i].dataset.y);
@@ -584,103 +615,142 @@ function createMovePlan() {
 			console.log("moveOptions[" + i + "]: " + moveOptions[i].dataset.x + ", " + moveOptions[i].dataset.y);
 		}
 	}
+/****** END DEBUG MOVE PLAN ******/
 
-	function getMoveStage1(initX, initY, moveOptions) {
-		//choose a random cell from the moveOptions
-		var moveIndex = getRandomInt(0, moveOptions.length - 1);
-		var move = moveOptions[moveIndex];
-		console.log("chosen random cell from move options: " + move.dataset.x + ", " + move.dataset.y);
+/***** ***** ***** 	Begin Stage 1 	***** ***** *****/
 
-		//add the chosen first move to the plan
-		movePlan.push(move);
-		printMovePlan(movePlan);
+function createMovePlanStage1(movePlan) {
+	var initX = initialHit.cellXCoord;
+	var initY = initialHit.cellYCoord;
 
-		//remove that option 
-		moveOptions.splice(moveIndex, 1);
+	//get all empty move options from the initial hit
+	var moveOptions = determineMoveOptions(initX, initY);
+	printMoveOptions(moveOptions);  //DEBUG
+
+	//continue hitting options from the first set of move options, until one contains a ship
+	do {
+		//get move
+		var currentMove = getMoveStage1(initX, initY, moveOptions);
+		//add move to movePlan
+		movePlan.push(currentMove);
+		//test to see if the move hits
+		var doesMoveHit = cellContainsClass(currentMove, 'ship');
+
+		//DEBUG
 		printMoveOptions(moveOptions);
-		
-		//determine the direction the first move was in, for future moves
-		currentDirection = determineMoveDirection(move, initX, initY);
-		console.log("current direction: " + currentDirection);
-		oppositeDirection = getOppositeDirection(currentDirection);
+		printMovePlan(movePlan);
+		console.log("does move hit? " + doesMoveHit);
+		//END DEBUG
 
-		return move;
+	} while (!doesMoveHit); //do the above while move doesn't hit
+
+	return currentMove;
+}
+
+function determineMoveOptions(x, y) {
+	var moveOptions = [];
+	var directions = ['left', 'right', 'up', 'down'];
+
+	//loop through all possible directions
+	for (var i = 0; i < directions.length; i++){
+		//if the adjacent cell exists, get and assign it
+		if (hasAdjacentCell(directions[i], x, y)) {
+			console.log("has adjacent cell " + directions[i]);
+			var adjacentCell = getAdjacentCell2(directions[i], x, y);
+			//if the cell is empty, push is to the moveOptions array
+			if (isCellEmpty(adjacentCell)) {
+				moveOptions.push(adjacentCell);
+			}
+		}
 	}
+	return moveOptions;
+}
 
-	function getMoveStage2(initX, initY, currentMove, currentDirection) {
-		var move = currentMove;
-		console.log("beginning stage2, checking parameters:");
-		console.log(initX +', ' + initY +', ' + currentMove +', ' + currentDirection);
+function getMoveStage1(initX, initY, moveOptions) {
+	//choose a random cell from the moveOptions
+	var moveIndex = getRandomInt(0, moveOptions.length - 1);
+	var move = moveOptions[moveIndex];
+	//remove that option 
+	moveOptions.splice(moveIndex, 1);
+	//determine the direction the first move was in, for future moves
+	var currentDirection = determineMoveDirection(move, initX, initY);
+	nextMove.setDirection(currentDirection);
+	
+	//DEBUG
+	console.log("chosen random cell from move options: " + move.dataset.x + ", " + move.dataset.y);
+	console.log("current direction: " + currentDirection);
+	//END DEBUG
 
-		//if the cell has an adjacent cell
-		if (hasAdjacentCell(currentDirection, currentMove.dataset.x, currentMove.dataset.y)) {
+	return move;
+}
+
+/*****  ***** ***** Begin Stage 2: Everything after 2 consecutive cells are hit *****/
+
+
+function createMovePlanStage2(movePlan, currentMove) {
+	var initX = initialHit.cellXCoord;
+	var initY = initialHit.cellYCoord;
+	var currentDirection = nextMove.getDirection();
+	var oppositeDirection = nextMove.getOppositeDirection();
+
+	console.log("beginning stage2, checking parameters:");
+	console.log('initial coords: '+ initX +', ' + initY +', currentMove: (' + currentMove.dataset.x + ', ' + currentMove.dataset.y + '), currentDirection: ' + currentDirection);
+	do {
+		currentMove = getMoveStage2(currentMove.dataset.x, currentMove.dataset.y, currentMove);
+		movePlan.push(currentMove);
+		printMovePlan(movePlan); //DEBUG
+	 } while ( movePlan.length < 7) // an arbitrary number, to use for now
+		return movePlan;	
+}
+
+function getMoveStage2(x, y, currentMove) {
+	var initX = initialHit.cellXCoord;
+	var initY = initialHit.cellYCoord;
+	var move = currentMove;
+	var currentDirection = nextMove.getDirection();
+	var oppositeDirection = nextMove.getOppositeDirection();
+
+	if (nextMove.getStatus() === 'continueDirection') {
+		if (hasAdjacentCell(currentDirection, move.dataset.x, move.dataset.y)) {
 			console.log("true, has adjacent cell");
 			//start with a move in the direction we have been going
 			move = getNextMoveSameDirection(move, currentDirection);
-			console.log(move); 
-			//if cell is empty
-			if (isCellEmpty(move)) {
-				//add that move to the plan
-				currentMove = move;
-				movePlan.push(move);
-				printMovePlan(movePlan);
-				//if miss
-				if (!cellContainsClass(move, 'ship')) {
+			console.log("getNextMoveSameDirection: (" + move.dataset.x + ', ' + move.dataset.y + ')'); 
+			if (isCellEmpty(move)) { 		//if cell isn't marked hit, miss, or sunk
+				currentMove = move; 		//make the move
+				if (!cellContainsClass(move, 'ship')) { //if move is a miss
 					console.log("missed");
-					//go back to the initial hit, and try the other direction
-					//first checking if it has an adjacentCell
-					if (hasAdjacentCell(oppositeDirection, initX, initY)) {
-						move = getMoveFromInitialHit(initX, initY, oppositeDirection);
-						//if that cell is empty
-						if (isCellEmpty(move)) {
-							//add that move to the plan
-							currentMove = move;
-							movePlan.push(move);
-							printMovePlan(movePlan);
-							//since we'll be switching directions from here, 
-							//the currentDirection will change
-							currentDirection = oppositeDirection;
-						}
-					}
+					nextMove.setStatus('changeDirection');
 				}
-			//if the cell we started with isn't empty
-			} else {
+			} else {	//if the cell IS marked either hit, miss, or sunk
 				//go ahead and try the other direction from the initial hit
 				//checking first to see if it has an adjacentCell
-				if (hasAdjacentCell(currentDirection, currentMove.dataset.x, currentMove.dataset.y)) {
-					move = getMoveFromInitialHit(initX, initY, oppositeDirection);
-					//if that cell is empty
-					if (isCellEmpty(move)) {
-						//add that move to the plan
-						currentMove = move;
-						movePlan.push(move);
-						printMovePlan(movePlan);
-						//and again in this case, change the currentDirection
-						currentDirection = oppositeDirection;
+				if (hasAdjacentCell(oppositeDirection, initX, initY)) {
+					move = getAdjacentCell2(oppositeDirection, initX, initY);
+					if (isCellEmpty(move)) {	//if cell isn't marked hit, miss, or sunk
+						currentMove = move; 	//make the move
+						nextMove.setDirection(oppositeDirection);
+						nextMove.setStatus('continueDirection');
 					}
-				}	
-			}	
+				}
+			}
 		}
-		return currentMove;
+	} else if (nextMove.getStatus() === 'changeDirection') {
+		//go back to the initial hit, and try the other direction
+		//first checking if it has an adjacentCell
+		if (hasAdjacentCell(oppositeDirection, initX, initY)) {
+			move = getAdjacentCell2(oppositeDirection, initX, initY);
+			if (isCellEmpty(move)) {	//if cell isn't marked hit, miss, or sunk
+				currentMove = move;		//make the move
+				nextMove.setDirection(oppositeDirection); //change directions
+				nextMove.setStatus('continueDirection');
+			}
+		}
 	}
-			
-		//continue hitting options from the first set of move options, until one contains a ship
-		do {
-			console.log(initX + ', ' + initY); //the coordinates from here are correct
-			var currentMove = getMoveStage1(initX, initY, moveOptions);
-			var doesMoveHit = cellContainsClass(currentMove, 'ship');
-			console.log("does move hit? " + doesMoveHit);
-		} while (!doesMoveHit);
-
-		//after 2 side-by-side hits, get next move based on direction of ship
-		do {
-			currentMove = getMoveStage2(currentMove.dataset.x, currentMove.dataset.y, currentMove, currentDirection);
-	 	//9 is an arbitrary number that should be enough, for now.
-		 } while ( movePlan.length < 9)
-			return movePlan;
-
-
+	return currentMove;
 }
+			
+// ***** ***** Stage 2 HELPERS ***** ***** // 
 
 function hasAdjacentCell(direction, x, y) {
 	if (direction === 'left' && x == 1) {
@@ -715,25 +785,6 @@ function getAdjacentCell2(direction, x, y) {
 	return cell;
 }
 
-function determineMoveOptions(x, y) {
-	var moveOptions = [];
-	var directions = ['left', 'right', 'up', 'down'];
-
-	//loop through all possible directions
-	for (var i = 0; i < directions.length; i++){
-		//if the adjacent cell exists, get and assign it
-		if (hasAdjacentCell(directions[i], x, y)) {
-			console.log("has adjacent cell " + directions[i]);
-			var adjacentCell = getAdjacentCell2(directions[i], x, y);
-			//if the cell is empty, push is to the moveOptions array
-			if (isCellEmpty(adjacentCell)) {
-				moveOptions.push(adjacentCell);
-			}
-		}
-	}
-	return moveOptions;
-}
-
 function determineMoveDirection(moveCell, initX, initY) {
 	var direction;
 	var newX = moveCell.dataset.x;
@@ -751,21 +802,18 @@ function determineMoveDirection(moveCell, initX, initY) {
 	return direction;
 }
 
+//possibly not necessary
 function getNextMoveSameDirection(currentMove, direction) {
-				var x = currentMove.dataset.x;
-				var y = currentMove.dataset.y;
-				console.log("getNextMoveSameDirection: " + x + ', ' + y);
-				console.log("and the currentMove is: " + currentMove);
-				var move = getAdjacentCell2(direction, x, y);
-				console.log("and the move is: " + move);
-				return move;
+	var x = currentMove.dataset.x;
+	var y = currentMove.dataset.y;
+	var move = getAdjacentCell2(direction, x, y);
+	
+	console.log("getNextMoveSameDirection: " + x + ', ' + y);
+	console.log("and the currentMove is: (" + currentMove.dataset.x + ', ' + currentMove.dataset.y +')');
+	console.log("and the move is: (" + move.dataset.x + ', ' + move.dataset.y +')');
+	
+	return move;
 }
-
-//goes back to the initially hit cell and gets a cell beside it, in the specified direction
-function getMoveFromInitialHit(initX, initY, direction) {
-				var move = getAdjacentCell2(direction, initX, initY);
-				return move;
-			}
 
 function firstHitOnShip(shipNumberClass) {
 	var shipCells = document.getElementsByClassName(shipNumberClass);
@@ -777,7 +825,7 @@ function firstHitOnShip(shipNumberClass) {
 	return true;
 }
 
-/***************    HELPER FUNCTIONS      ***********************/
+/***************   GENERAL HELPER FUNCTIONS      ***********************/
 
 function forEachCell(user, callback){
 	for (var x = 1; x <= gridSize; x++){
@@ -823,7 +871,7 @@ function cellHasPlayerShip() {
 	return status;
 }
 
-//Adds computer ship class to current cell
+//Adds compship class to current cell
 function cellHasComputerShip() {
 	var status = 'compship';
 	var cellToMark = currentCell;
@@ -847,6 +895,7 @@ function markCellMiss() {
 	return status;
 }
 
+//Adds sunk class to each cell of the current ship
 function markShipSunk(shipNumberClass) {
 	var status = 'sunk';
 	var sameShip = document.getElementsByClassName(shipNumberClass);

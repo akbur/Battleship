@@ -2,15 +2,37 @@
 
 PLAN - TO DO 
 
+-Read over the standards that Hack Reactor sent for their program / airbnb styling guide?
+
 -When Player is placing ship, hover the image of the ship
 -Don't allow illegal ship placements by player
 -Make the computer's guesses smarter after hitting a ship
--Work on CSS to make the gameboard prettier
+-Work on CSS to make the gameboard nice
 -Get rid of Ship heading and rotate button after ships are placed.
 	-maybe instead of hiding buttons, contain all of it in a container and hide the entire thing when ships are placed, 
 	-could put a message window there, instead, to display who the winner is.
 
--Make code more DRY - especially when I have 2 different functions for player & computer that do basically the same thing
--Some functions do many things, make more specific functions.
 
+PROBLEMS
+-Problems with click handlers
+-Need to remove the ship placement click handler after the ships are placed
+-kind of seems like i need to somehow remove the last one clicked? like after i place the last one, usually the carrier it stays on my mouse so i can keep placing it over and over.) 
+(i think that should solve the problem)
+-figure out a better solution for all these global scope variables
+
+-combine markplayercell & markcomputercell?
+
+WITH COMPUTER CHOICES:
+-Seems to work as long as all are seperate until the ship is sunk
+	-maybe to initial hit object i can add the ship number and then
+	-check to see if that ship number is sunk, or all the ships that have been hit and if there is a ship that has been hit and hasn't been sunk, begin the 
+	entire process on THAT ship using the initial hit on THAT ship.
+
+-Need to stop choosing moves from the plan and go back to random
+	whenever the ship would be sunk (since at the time of making the move plan
+	we haven't fired yet)
+-Need to make sure direction also changes when we run into a wall
+-Need to make corrections for if the ships are placed together, such as checking
+	to see if ships have been hit & not sunk (which could happen if ships are
+	touching)
 
