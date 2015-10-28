@@ -463,17 +463,18 @@ function markComputerCell() {
 	var shipNumberClass = getShipNumberClass();
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
 	
-	if (cellContainsClass(currentCell, 'compship')){ //if cell contains ship
-		if (shipSunk) {						//if hitting this cell should sink the ship
+	if (cellContainsClass(currentCell, 'compship')){ //if the computer cell contains ship
+		if (shipSunk) {						//if hitting this cell should sink that ship
 			markShipSunk(shipNumberClass);	//mark the entire ship as sunk
-		} else {							//if there is a ship, but it doesn't sink
-			markCellHit(); 					//mark cell as a hit
+		} else {							//else if the hit shouldn't sink that ship
+			markCellHit(); 					//mark the cell as a hit
 		}
 	} else { 								//if the computer cell doesn't contain a ship
 		markCellMiss();						//mark cell as a miss
 	}
 }
 
+//checks to see if all of the cells a particular ship have been hit
 function isShipSunk(numCellsHit, shipNumberClass) {
 	var sameShip = document.getElementsByClassName(shipNumberClass);
 	var shipSize = sameShip.length;
@@ -488,6 +489,7 @@ function isShipSunk(numCellsHit, shipNumberClass) {
 	return false;
 }
 
+//returns the ship number of the current ship cell
 function getShipNumberClass() {
 	var cell = currentCell;
 	var shipNumberClass = '';
@@ -507,9 +509,7 @@ function computerTurn() {
 	computerFire();
 }
 
-//now that i think of it, function below may be unnecessary
 function computerTurnClickHanders() {
-	//getCellClickHandler('computer','remove');
 	getCellClickHandler('player', 'add');
 }
 
