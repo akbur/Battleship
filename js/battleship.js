@@ -39,22 +39,17 @@ var lastMove = {
 };
 
 var nextMove = {
+	stage: 1,
 	status: 'continueDirection',
-	setStatus: function (status) {
-		this.status = status;
+	direction: "",
+	getOppositeDirection: function() {;
+		return getOppositeDirection(this.direction);
 	},
-	getStatus: function() {
-		return this.status;
+	setMove: function(move){
+		this.move = move;
 	},
-	setDirection: function(direction) {
-		this.direction = direction;
-	},
-	getDirection: function () {
-		return this.direction;
-	},
-	getOppositeDirection: function() {
-		var currentDirection = this.getDirection();
-		return getOppositeDirection(currentDirection);
+	getMove: function() {
+		return this.move;
 	}
 }
 
@@ -540,12 +535,6 @@ function getRandomPlayerCellCoords() {
 	yCoord = getRandomInt(1, gridSize);
 }
 
-function getSpecificPlayerCoords() {
-	var move = compMove.plan.shift();
-	xCoord = move.dataset.x;
-	yCoord = move.dataset.y;
-}
-
 function targetPlayerCell(type) {
 	var alreadyMarked;
 	var cell;
@@ -587,6 +576,12 @@ function markPlayerCell() {
 		status = markCellMiss();
 	}
 	lastMove.updateStatus(status);
+}
+
+function getSpecificPlayerCoords() {
+	var move = compMove.plan.shift();
+	xCoord = move.dataset.x;
+	yCoord = move.dataset.y;
 }
 
 /*************** FOR COMPUTER 'SMARTER' MOVES *********************/
@@ -671,7 +666,7 @@ function getMoveStage1(initX, initY, moveOptions) {
 	moveOptions.splice(moveIndex, 1);
 	//determine the direction the first move was in, for future moves
 	var currentDirection = determineMoveDirection(move, initX, initY);
-	nextMove.setDirection(currentDirection);
+	nextMove.direction = currentDirection;
 	
 	//DEBUG
 	console.log("chosen random cell from move options: " + move.dataset.x + ", " + move.dataset.y);
@@ -687,7 +682,7 @@ function getMoveStage1(initX, initY, moveOptions) {
 function planStage2(currentMove) {
 	var initX = initialHit.cellXCoord;
 	var initY = initialHit.cellYCoord;
-	var currentDirection = nextMove.getDirection();
+	var currentDirection = nextMove.direction;
 	var oppositeDirection = nextMove.getOppositeDirection();
 
 	console.log("beginning stage2, checking parameters:");
@@ -703,10 +698,10 @@ function getMoveStage2(x, y, currentMove) {
 	var initX = initialHit.cellXCoord;
 	var initY = initialHit.cellYCoord;
 	var move = currentMove;
-	var currentDirection = nextMove.getDirection();
+	var currentDirection = nextMove.direction;
 	var oppositeDirection = nextMove.getOppositeDirection();
 
-	if (nextMove.getStatus() === 'continueDirection') {
+	if (nextMove.status === 'continueDirection') {
 		if (hasAdjacentCell(currentDirection, move.dataset.x, move.dataset.y)) {
 			console.log("true, has adjacent cell");
 			//start with a move in the direction we have been going
@@ -716,7 +711,7 @@ function getMoveStage2(x, y, currentMove) {
 				currentMove = move; 		//make the move
 				if (!cellContainsClass(move, 'ship')) { //if move is a miss
 					console.log("missed");
-					nextMove.setStatus('changeDirection');
+					nextMove.status = 'changeDirection';
 				}
 			} else {	//if the cell IS marked either hit, miss, or sunk
 				//go ahead and try the other direction from the initial hit
@@ -725,21 +720,21 @@ function getMoveStage2(x, y, currentMove) {
 					move = getAdjacentCell2(oppositeDirection, initX, initY);
 					if (isCellEmpty(move)) {	//if cell isn't marked hit, miss, or sunk
 						currentMove = move; 	//make the move
-						nextMove.setDirection(oppositeDirection);
-						nextMove.setStatus('continueDirection');
+						nextMove.direction = oppositeDirection;
+						nextMove.status = 'continueDirection';
 					}
 				}
 			}
 		}
-	} else if (nextMove.getStatus() === 'changeDirection') {
+	} else if (nextMove.status === 'changeDirection') {
 		//go back to the initial hit, and try the other direction
 		//first checking if it has an adjacentCell
 		if (hasAdjacentCell(oppositeDirection, initX, initY)) {
 			move = getAdjacentCell2(oppositeDirection, initX, initY);
 			if (isCellEmpty(move)) {	//if cell isn't marked hit, miss, or sunk
 				currentMove = move;		//make the move
-				nextMove.setDirection(oppositeDirection); //change directions
-				nextMove.setStatus('continueDirection');
+				nextMove.direction = oppositeDirection; //change directions
+				nextMove.status = 'continueDirection';
 			}
 		}
 	}
