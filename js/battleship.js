@@ -362,50 +362,6 @@ function addShipPlacementClickHandlers() {
 	});
 }
 
-function beginHoverEffect() {
-	//need to add in here if the placement is legal
-	forEachCell('player', function(cell){
-		cell.addEventListener("mouseover", shipPlacementHover);
-		cell.addEventListener('mouseout', removeShipHover);
-	});
-}
-
-function shipPlacementHover() {
-	var x = this.dataset.x;
-	var y = this.dataset.y;
-	console.log('('+x+','+y+')');
-	var playerCell = getCell('player', x, y);
-	playerCell.className += ' placeship';
-	if (shipDirection === 'horizontal') {
-		var cell2 = getAdjacentCell2('right', x, y);
-		cell2.className += ' placeship';
-	} else if (shipDirection === 'vertical') {
-		var cell2 = getAdjacentCell2('up', x, y);
-		cell2.className += ' placeship';
-		//TODO: get adjacent cells equal to ship size
-	}
-}
-
-function removeShipHover() {
-	var x = this.dataset.x;
-	var y = this.dataset.y;
-	var playerCell = getCell('player', x, y);
-	playerCell.classList.remove('placeship');
-	if (shipDirection === 'horizontal') {
-			var cell2 = getAdjacentCell2('right', x, y);
-			cell2.classList.remove('placeship');
-	} else if (shipDirection === 'vertical') {
-		var cell2 = getAdjacentCell2('up', x, y);
-		cell2.classList.remove('placeship');
-	}
-}
-
-function endHoverEffect() {
-	forEachCell('player', function(cell){
-		cell.removeEventListener("mouseover", shipPlacementHover);
-		cell.removeEventListener('mouseout', removeShipHover);
-	});
-}
 
 function getShipFromClick() {
 	currentShipName = this.dataset.name;
@@ -514,6 +470,54 @@ function removeShipPlacementClickHandlers() {
 	}	
 }
 
+/***Player Ship Placement Hover Effect *****/
+
+//TODO: HOVER SHAPE SHOULD BE SHIP SIZE
+
+function beginHoverEffect() {
+	//need to add in here if the placement is legal
+	forEachCell('player', function(cell){
+		cell.addEventListener("mouseover", shipPlacementHover);
+		cell.addEventListener('mouseout', removeShipHover);
+	});
+}
+
+function shipPlacementHover() {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	//console.log('('+x+','+y+')');
+	var playerCell = getCell('player', x, y);
+	playerCell.className += ' placeship';
+	if (shipDirection === 'horizontal') {
+		var cell2 = getAdjacentCell2('right', x, y);
+		cell2.className += ' placeship';
+	} else if (shipDirection === 'vertical') {
+		var cell2 = getAdjacentCell2('up', x, y);
+		cell2.className += ' placeship';
+	}
+}
+
+function removeShipHover() {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	var playerCell = getCell('player', x, y);
+	playerCell.classList.remove('placeship');
+	if (shipDirection === 'horizontal') {
+			var cell2 = getAdjacentCell2('right', x, y);
+			cell2.classList.remove('placeship');
+	} else if (shipDirection === 'vertical') {
+		var cell2 = getAdjacentCell2('up', x, y);
+		cell2.classList.remove('placeship');
+	}
+}
+
+function endHoverEffect() {
+	forEachCell('player', function(cell){
+		cell.removeEventListener("mouseover", shipPlacementHover);
+		cell.removeEventListener('mouseout', removeShipHover);
+	});
+}
+
 /******************* PLAYER TURN *****************************/
 
 function playerTurn() {
@@ -535,6 +539,7 @@ function playerFireClickHandler() {
 function playerFire() {
 	markComputerCell();
 	console.log('player firing');
+	isGameWon();
 	computerTurn();
 }
 
@@ -586,6 +591,7 @@ function getShipNumberClass() {
 function computerTurn() {
 	computerTurnClickHanders();
 	computerFire();
+	isGameWon();
 }
 
 function computerTurnClickHanders() {
@@ -907,7 +913,41 @@ function firstHitOnShip(shipNumberClass) {
 	}
 	return true;
 }
+/************** GAME OVER **************/
+//TODO: finish this
+//if isGameWon() then need to call a function to do some sort
+//of cleanup & also need more than a log to console about winner
+ function isGameWon() {
+ 	if (areAllShipsSunk('player')) {
+ 		console.log('computer wins');
+ 		return true;
+ 	} else if (areAllShipsSunk('computer')) {
+ 		console.log('player wins');
+ 		return true;
+ 	} else return false;
+ }
 
+ function areAllShipsSunk(user) {
+ 	var numShipCellsSunk = 0;
+ 	if (user === 'computer') {
+ 		var shipClass = 'compship';
+ 	} else if (user === 'player') {
+ 		var shipClass = 'ship';
+ 	}
+ 	//loop through every cell of either the computer or player
+	forEachCell(user, function(cell){
+		//look at every cell containing a ship
+		if (cellContainsClass(cell, shipClass)) {
+			if (cellContainsClass(cell, 'sunk')) {
+				numShipCellsSunk++;
+			}
+		}
+ 	});
+ 	//the total number of ship cells per board is 17
+ 	if (numShipCellsSunk === 17) {
+ 		return true;
+ 	} else return false;
+ }
 /***************   GENERAL HELPER FUNCTIONS      ***********************/
 
 function forEachCell(user, callback){
