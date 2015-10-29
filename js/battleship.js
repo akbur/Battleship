@@ -492,20 +492,22 @@ function beginHoverEffect() {
 function shipPlacementHover() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
-	var cell = [];
-	cell[0] = getCell('player', x, y);
-	cell[0].className += ' placeship';
-	if (shipDirection === 'horizontal') {
-		for (var i = 1; i < currentShipSize; i++) {
-			cell[i] = getAdjacentCell2('right', x, y);
-			cell[i].className += ' placeship';
-			x++;
-		}	
-	} else if (shipDirection === 'vertical') {
-		for (var i = 1; i < currentShipSize; i++) {
-			cell[i] = getAdjacentCell2('up', x, y);
-			cell[i].className += ' placeship';
-			y++;
+	if (shipPlacementLegal(x, y)) {
+		var cell = [];
+		cell[0] = getCell('player', x, y);
+		cell[0].className += ' placeship';
+		if (shipDirection === 'horizontal') {
+			for (var i = 1; i < currentShipSize; i++) {
+				cell[i] = getAdjacentCell2('right', x, y);
+				cell[i].className += ' placeship';
+				x++;
+			}	
+		} else if (shipDirection === 'vertical') {
+			for (var i = 1; i < currentShipSize; i++) {
+				cell[i] = getAdjacentCell2('up', x, y);
+				cell[i].className += ' placeship';
+				y++;
+			}
 		}
 	}	
 }
@@ -513,20 +515,22 @@ function shipPlacementHover() {
 function removeShipHover() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
-	var cell = [];
-	cell[0] = getCell('player', x, y);
-	cell[0].classList.remove('placeship');
-	if (shipDirection === 'horizontal') {
-		for (var i = 1; i < currentShipSize; i++) {
-			cell[i] = getAdjacentCell2('right', x, y);
-			cell[i].classList.remove('placeship');
-			x++;
-		}	
-	} else if (shipDirection === 'vertical') {
-		for (var i = 1; i < currentShipSize; i++) {
-			cell[i] = getAdjacentCell2('up', x, y);
-			cell[i].classList.remove('placeship');
-			y++;
+	if (shipPlacementLegal(x, y)) {
+		var cell = [];
+		cell[0] = getCell('player', x, y);
+		cell[0].classList.remove('placeship');
+		if (shipDirection === 'horizontal') {
+			for (var i = 1; i < currentShipSize; i++) {
+				cell[i] = getAdjacentCell2('right', x, y);
+				cell[i].classList.remove('placeship');
+				x++;
+			}	
+		} else if (shipDirection === 'vertical') {
+			for (var i = 1; i < currentShipSize; i++) {
+				cell[i] = getAdjacentCell2('up', x, y);
+				cell[i].classList.remove('placeship');
+				y++;
+			}
 		}
 	}
 }
