@@ -1,6 +1,6 @@
 
 /***** VARIABLES *****/
-
+//shouldn't have so many global variables that change
 var gridSize = 10;
 var numShipsPlaced = 0;
 var numberOfShips = 5;
@@ -9,6 +9,7 @@ var currentShipName, currentShipSize, currentCell;
 var xCoordLimit = gridSize;
 var yCoordLimit = gridSize;
 var xCoord, yCoord;
+var gameOverAnnounced = false;
 
 var lastMove = {
 	cellHit: false,
@@ -101,12 +102,10 @@ function testShipPlacementComplete(callback) {
 
 function beginRounds() {
 	removeShipPlacementClickHandlers();
-	//ADD FUNCTION HERE TO REMOVE HEADING & ROTATE BUTTON
+	removeShipPlacementDiv();
 	playerTurn();
 	//computerTurn will be called when playerTurn complete
 }
-
-//add some cleanup here
 
 /***************** SETUP *******************************/
 
@@ -220,15 +219,15 @@ function getShipButton() {
 }
 
 function removeShipButton() {
-	var buttonToHide = getShipButton();
-	buttonToHide.style.visibility='hidden'; 
+	var shipButton = getShipButton();
+	shipButton.style.visibility='hidden'; 
 }
 
 function addRotateButton() {
 	var rotateDiv = document.getElementById('rotate-button-div');
 	var rotateButton = document.createElement('button');
 	rotateButton.setAttribute('id', 'rotate-button');
-	rotateButton.innerText = "Rotate";
+	rotateButton.innerText = "Rotate Ship";
 	rotateDiv.appendChild(rotateButton);
 	rotateButton.addEventListener('click', rotateShip);
 }
@@ -239,6 +238,11 @@ function rotateShip() {
 	} else if (shipDirection === "horizontal") {
 		shipDirection = "vertical";
 	}
+}
+
+function removeShipPlacementDiv() {
+	var shipBlock = document.getElementById('ship-block');
+	shipBlock.style.display = "none";
 }
 
 /***************** COMPUTER SHIP PLACEMENT***********************/
@@ -353,6 +357,7 @@ function addShipPlacementClickHandlers() {
 	var shipButtons = document.getElementsByClassName('ship-button');
 	for (var i = 0; i < shipButtons.length; i++){
 		shipButtons[i].addEventListener('click', getShipFromClick);
+		shipButtons[i].addEventListener('click', beginHoverEffect);
 	}	
 
 	//cell click handlers
@@ -367,12 +372,15 @@ function getShipFromClick() {
 }
 
 function statusPlayerPlaceShips() {
-//	if (shipPlacementLegal) {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	if (shipPlacementLegal(x, y)) {
 		numShipsPlaced++;
 		playerPlaceShip();
 		removeShipButton();
+		endHoverEffect();
 		testShipPlacementComplete(beginRounds);
-//	}
+	}
 }
 
 function playerPlaceShip() {
@@ -399,19 +407,56 @@ function markAdjacentCell(user){
 	}
 }
 
-//THIS ISN'T WORKING STILL
-//ALSO CHECK IF SHIP IS ALREADY THERE >>> 
-function shipPlacementLegal() {
-	
+function shipPlacementLegal(x, y) {
+	if (withinBounds(x, y)) {
+		if (!doesShipOverlap(x, y)) {
+			return true;
+		}
+	}
+	return false;;
+}
+
+function withinBounds(x, y) {
 	if (shipDirection === 'horizontal') {
-		if (this.dataset.x <= gridSize - this.dataset.size) {
+		if (x <= gridSize - currentShipSize + 1) {
 			return true;
 		}
 	} else if (shipDirection === 'vertical') {
-		if (this.dataset.y <= gridSize - this.dataset.size) {
+		if (y <= gridSize - currentShipSize + 1) {
 			return true;
 		}
 	} else return false;
+}
+
+//or doesCellContainPlayerShip
+function doesShipOverlap(x, y) {
+	var numCellsEmpty = 0;
+	
+	//populate cells array with all ship cells
+	var cell = [];
+	cell[0] = getCell('player', x, y);
+	if (shipDirection === 'horizontal') {
+		for (var i = 1; i < currentShipSize; i++) {
+			cell[i] = getAdjacentCell2('right', x, y);
+			x++
+		}
+	} else if (shipDirection === 'vertical') {
+		for (var i = 1; i < currentShipSize; i++) {
+			cell[i] = getAdjacentCell2('up', x, y);
+			y++
+		}
+	}
+
+	//loop through ship cells and count if empty;
+	for (var i = 0; i < cell.length; i++) {
+		if (!cellContainsClass(cell[i], 'ship')){
+			numCellsEmpty++;
+		}
+	}
+
+	if (numCellsEmpty == currentShipSize) {
+		return false; // ship does NOT overlap another ship
+	} else return true;
 }
 
 
@@ -432,6 +477,69 @@ function removeShipPlacementClickHandlers() {
 	for (var i = 0; i < shipButtons.length; i++){
 		shipButtons[i].removeEventListener('click', getShipFromClick);
 	}	
+}
+
+/*** Player Ship Placement Hover Effect *****/
+
+function beginHoverEffect() {
+	//need to add in here if the placement is legal
+	forEachCell('player', function(cell){
+		cell.addEventListener("mouseover", shipPlacementHover);
+		cell.addEventListener('mouseout', removeShipHover);
+	});
+}
+
+function shipPlacementHover() {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	if (shipPlacementLegal(x, y)) {
+		var cell = [];
+		cell[0] = getCell('player', x, y);
+		cell[0].className += ' placeship';
+		if (shipDirection === 'horizontal') {
+			for (var i = 1; i < currentShipSize; i++) {
+				cell[i] = getAdjacentCell2('right', x, y);
+				cell[i].className += ' placeship';
+				x++;
+			}	
+		} else if (shipDirection === 'vertical') {
+			for (var i = 1; i < currentShipSize; i++) {
+				cell[i] = getAdjacentCell2('up', x, y);
+				cell[i].className += ' placeship';
+				y++;
+			}
+		}
+	}	
+}
+
+function removeShipHover() {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	if (shipPlacementLegal(x, y)) {
+		var cell = [];
+		cell[0] = getCell('player', x, y);
+		cell[0].classList.remove('placeship');
+		if (shipDirection === 'horizontal') {
+			for (var i = 1; i < currentShipSize; i++) {
+				cell[i] = getAdjacentCell2('right', x, y);
+				cell[i].classList.remove('placeship');
+				x++;
+			}	
+		} else if (shipDirection === 'vertical') {
+			for (var i = 1; i < currentShipSize; i++) {
+				cell[i] = getAdjacentCell2('up', x, y);
+				cell[i].classList.remove('placeship');
+				y++;
+			}
+		}
+	}
+}
+
+function endHoverEffect() {
+	forEachCell('player', function(cell){
+		cell.removeEventListener("mouseover", shipPlacementHover);
+		cell.removeEventListener('mouseout', removeShipHover);
+	});
 }
 
 /******************* PLAYER TURN *****************************/
@@ -455,6 +563,7 @@ function playerFireClickHandler() {
 function playerFire() {
 	markComputerCell();
 	console.log('player firing');
+	isGameWon();
 	computerTurn();
 }
 
@@ -463,14 +572,16 @@ function markComputerCell() {
 	var shipNumberClass = getShipNumberClass();
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
 	
-	if (cellContainsClass(currentCell, 'compship')){ //if the computer cell contains ship
-		if (shipSunk) {						//if hitting this cell should sink that ship
-			markShipSunk(shipNumberClass);	//mark the entire ship as sunk
-		} else {							//else if the hit shouldn't sink that ship
-			markCellHit(); 					//mark the cell as a hit
+	if(!isGameWon()){	//if the game still continues
+		if (cellContainsClass(currentCell, 'compship')){ //if the computer cell contains ship
+			if (shipSunk) {						//if hitting this cell should sink that ship
+				markShipSunk(shipNumberClass);	//mark the entire ship as sunk
+			} else {							//else if the hit shouldn't sink that ship
+				markCellHit(); 					//mark the cell as a hit
+			}
+		} else { 								//if the computer cell doesn't contain a ship
+			markCellMiss();						//mark cell as a miss
 		}
-	} else { 								//if the computer cell doesn't contain a ship
-		markCellMiss();						//mark cell as a miss
 	}
 }
 
@@ -506,6 +617,7 @@ function getShipNumberClass() {
 function computerTurn() {
 	computerTurnClickHanders();
 	computerFire();
+	isGameWon();
 }
 
 function computerTurnClickHanders() {
@@ -569,21 +681,23 @@ function markPlayerCell() {
 	var status;
 	var shipNumberClass = getShipNumberClass();
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
-	
-	if (cellContainsClass(currentCell, 'ship')){
-		if (shipSunk) {
-			status = markShipSunk(shipNumberClass);
+
+	if (!isGameWon()) { //if the game still continues
+		if (cellContainsClass(currentCell, 'ship')){
+			if (shipSunk) {
+				status = markShipSunk(shipNumberClass);
+			} else {
+				 if(firstHitOnShip(shipNumberClass)) {
+				 	initialHit.recordCoords();
+				 	compMove.status = "targetingSpecificCell";
+				 }
+				status = markCellHit();
+			}
 		} else {
-			 if(firstHitOnShip(shipNumberClass)) {
-			 	initialHit.recordCoords();
-			 	compMove.status = "targetingSpecificCell";
-			 }
-			status = markCellHit();
+			status = markCellMiss();
 		}
-	} else {
-		status = markCellMiss();
+		lastMove.updateStatus(status);
 	}
-	lastMove.updateStatus(status);
 }
 
 function getSpecificPlayerCoords() {
@@ -827,7 +941,72 @@ function firstHitOnShip(shipNumberClass) {
 	}
 	return true;
 }
+/************** GAME OVER **************/
 
+ function isGameWon() {
+ 	var playerWin;
+ 	if (areAllShipsSunk('player')) {
+ 		playerWin = false;
+ 		gameOverCleanup(playerWin);
+ 		return true;
+ 	} else if (areAllShipsSunk('computer')) {
+ 		playerWin = true;
+ 		gameOverCleanup(playerWin);
+ 		return true;
+ 	} else return false;
+ }
+
+ function areAllShipsSunk(user) {
+ 	var numShipCellsSunk = 0;
+ 	if (user === 'computer') {
+ 		var shipClass = 'compship';
+ 	} else if (user === 'player') {
+ 		var shipClass = 'ship';
+ 	}
+ 	//loop through every cell of either the computer or player
+	forEachCell(user, function(cell){
+		//look at every cell containing a ship
+		if (cellContainsClass(cell, shipClass)) {
+			if (cellContainsClass(cell, 'sunk')) {
+				numShipCellsSunk++;
+			}
+		}
+ 	});
+ 	//the total number of ship cells per board is 17
+ 	if (numShipCellsSunk === 17) {
+ 		return true;
+ 	} else return false;
+ }
+
+function gameOverCleanup(playerWin) {
+	if (!gameOverAnnounced) {
+		if (playerWin) {
+			var winnerMessage = "Congratulations! You win!";
+		} else if (!playerWin) {
+			var winnerMessage = "All your ships have been sunk! You lose. Better luck next time!";
+		}
+		
+		//TRYING to turn off click handlers to make game be over
+		//but board still visible, not working atm
+		//may have to rethink
+		getCellClickHandler('computer', 'remove');
+		getCellClickHandler('player', 'remove');
+
+		//create a message for the winner
+		var winnerDiv = document.createElement('div');
+		winnerDiv.setAttribute('id', 'win-block');
+		var gameOverHeading = document.createElement('h3');
+		var gameOverText = document.createTextNode('GAME OVER');
+		var winnerPara = document.createElement('p');
+		var winnerText = document.createTextNode(winnerMessage);
+		gameOverHeading.appendChild(gameOverText);
+		winnerDiv.appendChild(gameOverHeading);
+		winnerPara.appendChild(winnerText);
+		winnerDiv.appendChild(winnerPara);
+		document.body.appendChild(winnerDiv);
+	}
+	gameOverAnnounced = true;
+}
 /***************   GENERAL HELPER FUNCTIONS      ***********************/
 
 function forEachCell(user, callback){

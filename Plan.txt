@@ -1,21 +1,24 @@
 //Text Based Battleship Game Plan
 
-PLAN - TO DO 
+GAMEPLAY
+-(SmarterComputer) - make it so that before going back to random, see if there has been an initial hit on any ships (that may have been abandoned if ships were placed touching)
+-I think the interruption seems to come when player hits while computer hitting
 
--Read over the standards that Hack Reactor sent for their program / airbnb styling guide
-
--When Player is placing ship, hover the image of the ship
--Don't allow illegal ship placements by player
--Work on CSS to make the gameboard nice
--Get rid of Ship heading and rotate button after ships are placed.
-	-maybe instead of hiding buttons, contain all of it in a container and hide the entire thing when ships are placed, 
-	-could put a message window there, instead, to display who the winner is.
--Gameover / winner when all ships have been sunk
--(SmarterComputer) - make it so that before going back to random, see if there has been an initial hit on any ships (that may have been abandoned if ships were touching)
-
-PROBLEMS
+TODO After basic gameplay is complete: 
+-when window is minimized, enemy fleet should be below the first board, instead both heading are on top
 -figure out a better solution for all these global scope variables
+-take out console.logs and debug stuff
+-Read over the standards that Hack Reactor sent for their program / airbnb styling guide and make changes (should have done that first)
+-get rid of purple ship color
+-add more comments
+-Player can't select a cell they've already selected
+- add gameplay instructions
 
-
-AND
--combine markplayercell & markcomputercell?
+IMPROVEMENTS
+-Add Play Again Button at the end.
+-Add instructions after the ships disappear in a instruct-block
+-Currently, cells aren't being marked at the end of the game, but if player continues to click the scrren, cells are being chosen by computer behind the scenes
+-Improve CSS styling
+-Add an Auto Place Ship button for player
+-Make it so ships aren't placed so close together.
+-Implement Higher Order Functions

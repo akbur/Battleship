@@ -1,28 +1,79 @@
-h1, h2, h3 {
-	font-family: Helvetica;
+body {
+	background-color: lightGrey;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+h1, h2, h3, p {
+	font-family: Helvetica, Arial, sans-serif;
 	text-align: center;
 }
 
-h3 {
-	font-size:1.5em;
+h2, h3{
+	width: 50%;
+	font-size:.75em;
+	padding: 0;
+	margin: 0;
+
 }
 
-body {
-	background-color: lightGrey;
+#player-fleet {
+	float: left;
+}
+
+#comp-fleet {
+	float: right;
+}		
+
+#board {
+	width: 100%;
 }
 
 .grid-container {
-	float: left;
+	width: 40%;
 	display: inline-block;
 	width: 375px;
 	height: 375px;
-	padding: 20px;
+	padding: 20px 110px;
 }
 
-.ship-buttons {
-	float: right;
-	clear: both;
+#ship-buttons, h3 {
+	width: 100%;
+	padding:0 25px;
+	text-align: center;
+}
 
+#ship-buttons {
+	padding-bottom: 20px;
+}
+
+#rotate-botton-div {
+	width: 100%;
+	text-align: center;
+}
+
+#rotate-button {
+	height: 18px;
+	margin: 10px auto;
+	padding: 10px auto;
+}
+
+#ship-block {
+	width: 400px;
+	padding: 10px auto;
+	margin: 10px auto;
+}
+
+#win-block {
+	width: 400px;
+	padding: 10px auto;
+	margin: 10px auto;
+	text-align: center;
+}
+
+#win-block h3 {
+	font-size: 2em;
 }
 
 /* GRID CELL COLORS FOR DIFF STATES */
@@ -35,16 +86,21 @@ body {
 	border: 1px solid black;
 }
 
+.placeship{
+	background-color: DarkGrey;
+}
+
 .ship {
 	background-color: DarkGrey;
 }
 
 .compship {
-	background-color: Purple;
+	/*background-color: Purple;*/
+	background-color: SteelBlue;
 }
 
 .hit {
-	background-color:red;
+	background-color:FireBrick;
 }
 
 
