@@ -473,9 +473,7 @@ function removeShipPlacementClickHandlers() {
 	}	
 }
 
-/***Player Ship Placement Hover Effect *****/
-
-//TODO: HOVER SHAPE SHOULD BE SHIP SIZE
+/*** Player Ship Placement Hover Effect *****/
 
 function beginHoverEffect() {
 	//need to add in here if the placement is legal
@@ -564,14 +562,16 @@ function markComputerCell() {
 	var shipNumberClass = getShipNumberClass();
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
 	
-	if (cellContainsClass(currentCell, 'compship')){ //if the computer cell contains ship
-		if (shipSunk) {						//if hitting this cell should sink that ship
-			markShipSunk(shipNumberClass);	//mark the entire ship as sunk
-		} else {							//else if the hit shouldn't sink that ship
-			markCellHit(); 					//mark the cell as a hit
+	if(!isGameWon()){	//if the game still continues
+		if (cellContainsClass(currentCell, 'compship')){ //if the computer cell contains ship
+			if (shipSunk) {						//if hitting this cell should sink that ship
+				markShipSunk(shipNumberClass);	//mark the entire ship as sunk
+			} else {							//else if the hit shouldn't sink that ship
+				markCellHit(); 					//mark the cell as a hit
+			}
+		} else { 								//if the computer cell doesn't contain a ship
+			markCellMiss();						//mark cell as a miss
 		}
-	} else { 								//if the computer cell doesn't contain a ship
-		markCellMiss();						//mark cell as a miss
 	}
 }
 
@@ -671,21 +671,23 @@ function markPlayerCell() {
 	var status;
 	var shipNumberClass = getShipNumberClass();
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
-	
-	if (cellContainsClass(currentCell, 'ship')){
-		if (shipSunk) {
-			status = markShipSunk(shipNumberClass);
+
+	if (!isGameWon()) { //if the game still continues
+		if (cellContainsClass(currentCell, 'ship')){
+			if (shipSunk) {
+				status = markShipSunk(shipNumberClass);
+			} else {
+				 if(firstHitOnShip(shipNumberClass)) {
+				 	initialHit.recordCoords();
+				 	compMove.status = "targetingSpecificCell";
+				 }
+				status = markCellHit();
+			}
 		} else {
-			 if(firstHitOnShip(shipNumberClass)) {
-			 	initialHit.recordCoords();
-			 	compMove.status = "targetingSpecificCell";
-			 }
-			status = markCellHit();
+			status = markCellMiss();
 		}
-	} else {
-		status = markCellMiss();
+		lastMove.updateStatus(status);
 	}
-	lastMove.updateStatus(status);
 }
 
 function getSpecificPlayerCoords() {
