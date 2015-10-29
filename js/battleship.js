@@ -367,12 +367,14 @@ function getShipFromClick() {
 }
 
 function statusPlayerPlaceShips() {
-//	if (shipPlacementLegal) {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	if (shipPlacementLegal(x, y)) {
 		numShipsPlaced++;
 		playerPlaceShip();
 		removeShipButton();
 		testShipPlacementComplete(beginRounds);
-//	}
+	}
 }
 
 function playerPlaceShip() {
@@ -399,21 +401,52 @@ function markAdjacentCell(user){
 	}
 }
 
-//THIS ISN'T WORKING STILL
-//ALSO CHECK IF SHIP IS ALREADY THERE >>> 
-function shipPlacementLegal() {
-	
+function shipPlacementLegal(x, y) {
+	if (withinBounds(x, y)) {
+		//prevent ship overlap
+		//if (!shipOverlap(x, y)) {
+			return true;
+		//}
+	}
+	return false;;
+}
+
+function withinBounds(x, y) {
 	if (shipDirection === 'horizontal') {
-		if (this.dataset.x <= gridSize - this.dataset.size) {
+		if (x <= gridSize - currentShipSize + 1) {
 			return true;
 		}
 	} else if (shipDirection === 'vertical') {
-		if (this.dataset.y <= gridSize - this.dataset.size) {
+		if (y <= gridSize - currentShipSize + 1) {
 			return true;
 		}
 	} else return false;
 }
 
+//or doesCellContainPlayerShip
+/*function shipOverlap(x, y) {
+	var numCellsEmpty = 0;
+	if (shipDirection === 'horizontal') {
+		for (var i = x; i < x + currentShipSize; i++) {
+			var playerCell = getCell('player', i, y);
+			console.log(playerCell);
+			if (!cellContainsClass(playerCell, 'ship')){
+				numCellsEmpty++;
+			}
+		}
+	} else if (shipDirection === 'vertical') {
+		for (var i = y; i < y + currentShipSize; i++) {
+			var playerCell = getCell('player', x, i);
+			console.log(playerCell);
+			if (!cellContainsClass(playerCell, 'ship')){
+				numCellsEmpty++;
+			}
+		}
+	}	
+	if (numCellsEmpty === currentShipSize) {
+		return true
+	} else return false;
+}*/
 
 function allPlayerShipsPlaced() {
 	//(numberOfShips*2) because counting computer ships and player ships
