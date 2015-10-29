@@ -918,11 +918,14 @@ function firstHitOnShip(shipNumberClass) {
 //if isGameWon() then need to call a function to do some sort
 //of cleanup & also need more than a log to console about winner
  function isGameWon() {
+ 	var winnerMessage;
  	if (areAllShipsSunk('player')) {
- 		console.log('computer wins');
+ 		winnerMessage = "All your ships have been sunk! You lose. Better luck next time!";
+ 		gameOverCleanup(winnerMessage);
  		return true;
  	} else if (areAllShipsSunk('computer')) {
- 		console.log('player wins');
+ 		winnerMessage = "Congratulations! You win!";
+ 		gameOverCleanup(winnerMessage);
  		return true;
  	} else return false;
  }
@@ -948,6 +951,33 @@ function firstHitOnShip(shipNumberClass) {
  		return true;
  	} else return false;
  }
+
+function gameOverCleanup(winnerMessage) {
+	console.log(winnerMessage);
+	//hides the board
+	//perhaps instead of hiding the board I could remove all click handlers
+	//and put the winnerDiv above it --- checking this out first.
+	var gridDivs = document.querySelectorAll('.grid-container');
+	for (var grid = 0; grid < gridDivs.length; grid++) {
+		gridDivs[grid].style.visibility='hidden';
+	}
+
+	//create a message for the winner
+	var winnerDiv = document.createElement('div');
+	var winnerPara = document.createElement('p');
+	var winnerText = document.createTextNode(winnerMessage);
+	winnerPara.appendChild(winnerText);
+	winnerDiv.appendChild(winnerPara);
+	document.body.appendChild(winnerDiv);
+
+	//below is just for reference on dom stuff for now
+	/*var rotateDiv = document.getElementById('rotate-button-div');
+	var rotateButton = document.createElement('button');
+	rotateButton.setAttribute('id', 'rotate-button');
+	rotateButton.innerText = "Rotate";
+	rotateDiv.appendChild(rotateButton);
+	rotateButton.addEventListener('click', rotateShip);*/
+}
 /***************   GENERAL HELPER FUNCTIONS      ***********************/
 
 function forEachCell(user, callback){
