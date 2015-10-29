@@ -60,9 +60,8 @@ var nextMove = {
 				this.stage = 2;
 			}
 		}
-
 	},
-}
+};
 
 var initialHit = {
 	cellXCoord: 0,
@@ -588,26 +587,33 @@ function markPlayerCell() {
 }
 
 function getSpecificPlayerCoords() {
-	if (nextMove.stage === 0){
-		createPlanStage1();
-	} 
-	if (nextMove.stage === 1){
-		getNextMoveFromPlan();
-	}
-	if (nextMove.stage === 2) {
-		createPlanStage2();
-	}
-	
-	//set coords to make next move
-	var move = nextMove.getMove();
-	xCoord = move.dataset.x;
-	yCoord = move.dataset.y;
-	
-	nextMove.determineStage();
+	if (lastMove.cellSunk) {
+			console.log("that one sunk the ship");
+			compMove.status = "targetingRandomCell";
+			this.stage = 0;
+			determineTypeOfFire();
+	} else {
+		if (nextMove.stage === 0){
+			createPlanStage1();
+		} 
+		if (nextMove.stage === 1){
+			getNextMoveFromPlan();
+		}
+		if (nextMove.stage === 2) {
+			createPlanStage2();
+		}
+		
+		//set coords to make next move
+		var move = nextMove.getMove();
+		xCoord = move.dataset.x;
+		yCoord = move.dataset.y;
+		
+		nextMove.determineStage();
 
-	//DEBUG
-		console.log("nextMove: (" + xCoord + ", " + yCoord + ")");
-	//END DEBUG
+		//DEBUG
+			console.log("nextMove: (" + xCoord + ", " + yCoord + ")");
+		//END DEBUG
+	}
 }
 
 /*************** FOR COMPUTER 'SMARTER' MOVES *********************/
@@ -699,13 +705,6 @@ function createPlanStage2() {	//rename?
 	//after making the move, it becomes the last move for the next time the function is called
 	
 	console.log('after - currentMove: (' + currentMove.dataset.x + ', ' + currentMove.dataset.y + '), currentDirection: ' + currentDirection);
-	
-	//think abt moving this to determine stage
-	if (lastMove.cellSunk) {
-		console.log("that one sunk the ship");
-		compMove.status = "targetingRandomCell";
-		nextMove.stage = 0;
-	}
 }
 
 function getMoveStage2() {	//seems complete in what it does for now
