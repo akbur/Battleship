@@ -353,11 +353,57 @@ function addShipPlacementClickHandlers() {
 	var shipButtons = document.getElementsByClassName('ship-button');
 	for (var i = 0; i < shipButtons.length; i++){
 		shipButtons[i].addEventListener('click', getShipFromClick);
+		shipButtons[i].addEventListener('click', beginHoverEffect);
 	}	
 
 	//cell click handlers
 	forEachCell('player', function(cell){
 		cell.addEventListener("click", statusPlayerPlaceShips);
+	});
+}
+
+function beginHoverEffect() {
+	//need to add in here if the placement is legal
+	forEachCell('player', function(cell){
+		cell.addEventListener("mouseover", shipPlacementHover);
+		cell.addEventListener('mouseout', removeShipHover);
+	});
+}
+
+function shipPlacementHover() {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	console.log('('+x+','+y+')');
+	var playerCell = getCell('player', x, y);
+	playerCell.className += ' placeship';
+	if (shipDirection === 'horizontal') {
+		var cell2 = getAdjacentCell2('right', x, y);
+		cell2.className += ' placeship';
+	} else if (shipDirection === 'vertical') {
+		var cell2 = getAdjacentCell2('up', x, y);
+		cell2.className += ' placeship';
+		//TODO: get adjacent cells equal to ship size
+	}
+}
+
+function removeShipHover() {
+	var x = this.dataset.x;
+	var y = this.dataset.y;
+	var playerCell = getCell('player', x, y);
+	playerCell.classList.remove('placeship');
+	if (shipDirection === 'horizontal') {
+			var cell2 = getAdjacentCell2('right', x, y);
+			cell2.classList.remove('placeship');
+	} else if (shipDirection === 'vertical') {
+		var cell2 = getAdjacentCell2('up', x, y);
+		cell2.classList.remove('placeship');
+	}
+}
+
+function endHoverEffect() {
+	forEachCell('player', function(cell){
+		cell.removeEventListener("mouseover", shipPlacementHover);
+		cell.removeEventListener('mouseout', removeShipHover);
 	});
 }
 
@@ -373,6 +419,7 @@ function statusPlayerPlaceShips() {
 		numShipsPlaced++;
 		playerPlaceShip();
 		removeShipButton();
+		endHoverEffect();
 		testShipPlacementComplete(beginRounds);
 	}
 }
