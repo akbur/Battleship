@@ -48,7 +48,7 @@ var nextMove = {
 	},
 	setMove: function(move){
 		this.move = move;
-		console.log('nextMove.setMove: ' + this.move.dataset.x + " , " + this.move.dataset.y);
+		console.log('nextMove.setMove: ' + move);
 	},
 	getMove: function() {
 		console.log("getting move");
@@ -58,7 +58,6 @@ var nextMove = {
 		if (this.stage === 1) {
 			if (compMove.stage1Plan.length === 0) {
 				this.stage = 2;
-				compMove.firstCall = true;
 			}
 		}
 
@@ -698,7 +697,6 @@ function createPlanStage2() {	//rename?
 	//set it as the next move to be made
 	nextMove.setMove(currentMove);
 	//after making the move, it becomes the last move for the next time the function is called
-	lastMove = currentMove;
 	
 	console.log('after - currentMove: (' + currentMove.dataset.x + ', ' + currentMove.dataset.y + '), currentDirection: ' + currentDirection);
 	
