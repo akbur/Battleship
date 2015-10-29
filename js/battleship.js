@@ -366,7 +366,6 @@ function addShipPlacementClickHandlers() {
 	});
 }
 
-
 function getShipFromClick() {
 	currentShipName = this.dataset.name;
 	currentShipSize = this.dataset.size;
@@ -410,10 +409,9 @@ function markAdjacentCell(user){
 
 function shipPlacementLegal(x, y) {
 	if (withinBounds(x, y)) {
-		//prevent ship overlap
-		//if (!shipOverlap(x, y)) {
+		if (!doesShipOverlap(x, y)) {
 			return true;
-		//}
+		}
 	}
 	return false;;
 }
@@ -431,29 +429,36 @@ function withinBounds(x, y) {
 }
 
 //or doesCellContainPlayerShip
-/*function shipOverlap(x, y) {
+function doesShipOverlap(x, y) {
 	var numCellsEmpty = 0;
+	
+	//populate cells array with all ship cells
+	var cell = [];
+	cell[0] = getCell('player', x, y);
 	if (shipDirection === 'horizontal') {
-		for (var i = x; i < x + currentShipSize; i++) {
-			var playerCell = getCell('player', i, y);
-			console.log(playerCell);
-			if (!cellContainsClass(playerCell, 'ship')){
-				numCellsEmpty++;
-			}
+		for (var i = 1; i < currentShipSize; i++) {
+			cell[i] = getAdjacentCell2('right', x, y);
+			x++
 		}
 	} else if (shipDirection === 'vertical') {
-		for (var i = y; i < y + currentShipSize; i++) {
-			var playerCell = getCell('player', x, i);
-			console.log(playerCell);
-			if (!cellContainsClass(playerCell, 'ship')){
-				numCellsEmpty++;
-			}
+		for (var i = 1; i < currentShipSize; i++) {
+			cell[i] = getAdjacentCell2('up', x, y);
+			y++
 		}
-	}	
-	if (numCellsEmpty === currentShipSize) {
-		return true
-	} else return false;
-}*/
+	}
+
+	//loop through ship cells and count if empty;
+	for (var i = 0; i < cell.length; i++) {
+		if (!cellContainsClass(cell[i], 'ship')){
+			numCellsEmpty++;
+		}
+	}
+
+	if (numCellsEmpty == currentShipSize) {
+		return false; // ship does NOT overlap another ship
+	} else return true;
+}
+
 
 function allPlayerShipsPlaced() {
 	//(numberOfShips*2) because counting computer ships and player ships

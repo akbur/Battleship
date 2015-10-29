@@ -3,10 +3,10 @@
 GAMEPLAY
 -ship hover only on legal placements (to avoid current error)
 	^must fix legal placement first - no ship overlap allowed
--(SmarterComputer) - make it so that before going back to random, see if there has been an initial hit on any ships (that may have been abandoned if ships were placed touching)
 -perhaps player can't select cell they've already selected/
 
--Win message showing repeatedly upon clicking the gameboard
+-(SmarterComputer) - make it so that before going back to random, see if there has been an initial hit on any ships (that may have been abandoned if ships were placed touching)
+-I think the interruption seems to come when player hits while computer hitting
 
 TODO After basic gameplay is complete: 
 -when window is minimized, enemy fleet should be below the first board, instead both heading are on top
