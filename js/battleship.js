@@ -16,10 +16,11 @@ var lastMove = {
 	cellSunk: false,
 	cellXCoord: 0,
 	cellYCoord: 0,
-	updateCoords: function(x, y){
-		this.cellXCoord = x;
-		this.cellYCoord = y;
-		console.log("lastMove: " + this.cellXCoord + ', ' + this.cellYCoord);
+	setCell: function(cell) {
+		this.cell = cell;
+	},
+	getCell: function() {
+		return this.cell;
 	},
 	updateStatus: function(status) {
 		if (status === 'hit') {
@@ -57,6 +58,7 @@ var nextMove = {
 		if (this.stage === 1) {
 			if (compMove.stage1Plan.length === 0) {
 				this.stage = 2;
+				compMove.firstCall = true;
 			}
 		}
 
@@ -551,13 +553,16 @@ function targetPlayerCell(type) {
 			cell = getCell('player', xCoord, yCoord);
 			alreadyMarked = !isCellEmpty(cell);
 		} while (alreadyMarked);
-	
+
 	} else if (type === 'specific') {
 		getSpecificPlayerCoords();
 		cell = getCell('player', xCoord, yCoord);
 	}
 
-	lastMove.updateCoords(xCoord, yCoord);
+	lastMove.cellXCoord = xCoord;
+	lastMove.cellYCoord = yCoord;
+	lastMove.setCell(cell);
+
 	return cell;
 }
 
@@ -598,7 +603,7 @@ function getSpecificPlayerCoords() {
 	var move = nextMove.getMove();
 	xCoord = move.dataset.x;
 	yCoord = move.dataset.y;
-
+	
 	nextMove.determineStage();
 
 	//DEBUG
@@ -615,12 +620,6 @@ compMove = {
 		for (var i = 0; i < this.stage1Plan.length; i++) {
 			console.log('stage1Plan['+ i + ']: (' + this.stage1Plan[i].dataset.x + ',' + this.stage1Plan[i].dataset.y + ')');
 		}
-	},
-	setLastStage1Move: function(move) {
-		this.lastMove = move;
-	}, 
-	getLastStage1Move: function() {
-		return this.lastMove;
 	},
 };
 
@@ -651,7 +650,6 @@ function createPlanStage1() {
 	} while (!doesMoveHit); //do the above while move doesn't hit
 
 	nextMove.stage = 1;
-	compMove.setLastStage1Move(currentMove);
 }
 
 function determineMoveOptions(x, y) {
@@ -687,45 +685,48 @@ function getMoveForPlan(initX, initY, moveOptions) {
 	return move;
 }
 
-function createPlanStage2() {
-	//DEBUG
-		console.log("stage 2 comes here, just checking stage 1 first...");
-		var cell = getCell('player', 10, 10);
-		nextMove.setMove(cell);
-		compMove.status = "targetingRandomCell";
-
-	//END DEBUG
-	/*var initX = initialHit.cellXCoord;
-	var initY = initialHit.cellYCoord;
-	var currentMove = compMove.getLastStage1Move();
-	var currentDirection = nextMove.direction;
+function createPlanStage2() {	//rename?
+	var currentMove;
+	var currentDirection = nextMove.direction;		
 	var oppositeDirection = nextMove.getOppositeDirection();
 
 	console.log("beginning stage2, checking parameters:");
-	console.log('initial coords: '+ initX +', ' + initY +', currentMove: (' + currentMove.dataset.x + ', ' + currentMove.dataset.y + '), currentDirection: ' + currentDirection);
-	do {
-		currentMove = getMoveStage2(currentMove.dataset.x, currentMove.dataset.y, currentMove);
-		compMove.plan.push(currentMove);
-		compMove.printPlan(); //DEBUG
-	 } while ( compMove.plan.length < 7) // an arbitrary number, to use for now*/
+	console.log('before - lastMove: (' + lastMove.cellXCoord + ', ' + lastMove.cellYCoord+ '), currentDirection: ' + currentDirection);
+	
+	//get a new move using the last move as reference
+	currentMove = getMoveStage2(lastMove.getCell());
+	//set it as the next move to be made
+	nextMove.setMove(currentMove);
+	//after making the move, it becomes the last move for the next time the function is called
+	lastMove = currentMove;
+	
+	console.log('after - currentMove: (' + currentMove.dataset.x + ', ' + currentMove.dataset.y + '), currentDirection: ' + currentDirection);
+	
+	//think abt moving this to determine stage
+	if (lastMove.cellSunk) {
+		console.log("that one sunk the ship");
+		compMove.status = "targetingRandomCell";
+		nextMove.stage = 0;
+	}
 }
 
-function getMoveStage2(x, y, currentMove) {
+function getMoveStage2() {	//seems complete in what it does for now
 	var initX = initialHit.cellXCoord;
 	var initY = initialHit.cellYCoord;
-	var move = currentMove;
+	var currentMove, moveToMake;
 	var currentDirection = nextMove.direction;
 	var oppositeDirection = nextMove.getOppositeDirection();
 
 	if (nextMove.status === 'continueDirection') {
-		if (hasAdjacentCell(currentDirection, move.dataset.x, move.dataset.y)) {
+		if (hasAdjacentCell(currentDirection, lastMove.cellXCoord, lastMove.cellYCoord)) {
 			console.log("true, has adjacent cell");
 			//start with a move in the direction we have been going
-			move = getNextMoveSameDirection(move, currentDirection);
-			console.log("getNextMoveSameDirection: (" + move.dataset.x + ', ' + move.dataset.y + ')'); 
-			if (isCellEmpty(move)) { 		//if cell isn't marked hit, miss, or sunk
-				currentMove = move; 		//make the move
-				if (!cellContainsClass(move, 'ship')) { //if move is a miss
+			console.log(lastMove.getCell());
+			currentMove = getNextMoveSameDirection(lastMove.getCell(), currentDirection);
+			console.log("getNextMoveSameDirection: (" + lastMove.cellXCoord + ', ' + lastMove.cellYCoord + ')'); 
+			if (isCellEmpty(currentMove)) { 		//if cell isn't marked hit, miss, or sunk
+				moveToMake = currentMove; 		
+				if (!cellContainsClass(currentMove, 'ship')) { //if move is a miss
 					console.log("missed");
 					nextMove.status = 'changeDirection';
 				}
@@ -733,9 +734,9 @@ function getMoveStage2(x, y, currentMove) {
 				//go ahead and try the other direction from the initial hit
 				//checking first to see if it has an adjacentCell
 				if (hasAdjacentCell(oppositeDirection, initX, initY)) {
-					move = getAdjacentCell2(oppositeDirection, initX, initY);
-					if (isCellEmpty(move)) {	//if cell isn't marked hit, miss, or sunk
-						currentMove = move; 	//make the move
+					currentMove = getAdjacentCell2(oppositeDirection, initX, initY);
+					if (isCellEmpty(currentMove)) {	//if cell isn't marked hit, miss, or sunk
+						moveToMake = currentMove; 	
 						nextMove.direction = oppositeDirection;
 						nextMove.status = 'continueDirection';
 					}
@@ -746,15 +747,15 @@ function getMoveStage2(x, y, currentMove) {
 		//go back to the initial hit, and try the other direction
 		//first checking if it has an adjacentCell
 		if (hasAdjacentCell(oppositeDirection, initX, initY)) {
-			move = getAdjacentCell2(oppositeDirection, initX, initY);
-			if (isCellEmpty(move)) {	//if cell isn't marked hit, miss, or sunk
-				currentMove = move;		//make the move
+			currentMove = getAdjacentCell2(oppositeDirection, initX, initY);
+			if (isCellEmpty(currentMove)) {	//if cell isn't marked hit, miss, or sunk
+				moveToMake = currentMove;		//make the move
 				nextMove.direction = oppositeDirection; //change directions
 				nextMove.status = 'continueDirection';
 			}
 		}
 	}
-	return currentMove;
+	return moveToMake;
 }
 			
 // ***** ***** Stage 2 HELPERS ***** ***** // 
@@ -808,16 +809,16 @@ function determineMoveDirection(moveCell, initX, initY) {
 	return direction;
 }
 
-function getNextMoveSameDirection(currentMove, direction) {
-	var x = currentMove.dataset.x;
-	var y = currentMove.dataset.y;
-	var move = getAdjacentCell2(direction, x, y);
+function getNextMoveSameDirection(move, direction) {
+	var x = move.dataset.x;
+	var y = move.dataset.y;
+	var newMove = getAdjacentCell2(direction, x, y);
 	
 	console.log("getNextMoveSameDirection: " + x + ', ' + y);
-	console.log("and the currentMove is: (" + currentMove.dataset.x + ', ' + currentMove.dataset.y +')');
-	console.log("and the move is: (" + move.dataset.x + ', ' + move.dataset.y +')');
+	console.log("and the last move is: (" + move.dataset.x + ', ' + move.dataset.y +')');
+	console.log("and the next move is: (" + newMove.dataset.x + ', ' + newMove.dataset.y +')');
 	
-	return move;
+	return newMove;
 }
 
 function firstHitOnShip(shipNumberClass) {
