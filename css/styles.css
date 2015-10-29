@@ -60,10 +60,21 @@ h2, h3{
 	padding: 10px auto;
 }
 
-#aux-block {
+#ship-block {
 	width: 400px;
 	padding: 10px auto;
 	margin: 10px auto;
+}
+
+#win-block {
+	width: 400px;
+	padding: 10px auto;
+	margin: 10px auto;
+	text-align: center;
+}
+
+#win-block h3 {
+	font-size: 2em;
 }
 
 

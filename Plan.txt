@@ -5,6 +5,7 @@ GAMEPLAY
 -Don't allow ship overlap during placement
 -(SmarterComputer) - make it so that before going back to random, see if there has been an initial hit on any ships (that may have been abandoned if ships were placed touching)
 -win message appears twice on player wins
+-perhaps player can't select cell they've already selected/
 
 DIV STYLING STUFF
 change place your ship heading to dynamically created
@@ -19,4 +20,5 @@ TODO After basic gameplay is complete:
 -figure out a better solution for all these global scope variables
 -take out console.logs and debug stuff
 -Read over the standards that Hack Reactor sent for their program / airbnb styling guide and make changes (should have done that first)
+-get rid of purple ship color
 

@@ -101,12 +101,10 @@ function testShipPlacementComplete(callback) {
 
 function beginRounds() {
 	removeShipPlacementClickHandlers();
-	//ADD FUNCTION HERE TO REMOVE HEADING & ROTATE BUTTON
+	removeShipPlacementDiv();
 	playerTurn();
 	//computerTurn will be called when playerTurn complete
 }
-
-//add some cleanup here
 
 /***************** SETUP *******************************/
 
@@ -220,8 +218,8 @@ function getShipButton() {
 }
 
 function removeShipButton() {
-	var buttonToHide = getShipButton();
-	buttonToHide.style.visibility='hidden'; 
+	var shipButton = getShipButton();
+	shipButton.style.visibility='hidden'; 
 }
 
 function addRotateButton() {
@@ -239,6 +237,11 @@ function rotateShip() {
 	} else if (shipDirection === "horizontal") {
 		shipDirection = "vertical";
 	}
+}
+
+function removeShipPlacementDiv() {
+	var shipBlock = document.getElementById('ship-block');
+	shipBlock.style.display = "none";
 }
 
 /***************** COMPUTER SHIP PLACEMENT***********************/
@@ -918,14 +921,14 @@ function firstHitOnShip(shipNumberClass) {
 //if isGameWon() then need to call a function to do some sort
 //of cleanup & also need more than a log to console about winner
  function isGameWon() {
- 	var winnerMessage;
+ 	var playerWin;
  	if (areAllShipsSunk('player')) {
- 		winnerMessage = "All your ships have been sunk! You lose. Better luck next time!";
- 		gameOverCleanup(winnerMessage);
+ 		playerWin = false;
+ 		gameOverCleanup(playerWin);
  		return true;
  	} else if (areAllShipsSunk('computer')) {
- 		winnerMessage = "Congratulations! You win!";
- 		gameOverCleanup(winnerMessage);
+ 		playerWin = true;
+ 		gameOverCleanup(playerWin);
  		return true;
  	} else return false;
  }
@@ -952,40 +955,31 @@ function firstHitOnShip(shipNumberClass) {
  	} else return false;
  }
 
-function gameOverCleanup(winnerMessage) {
-	console.log(winnerMessage);
-
-	//winner message prints twice when player wins
-	//has to do with being called on comp and player turns
-	
-	//hides the board
-	//perhaps instead of hiding the board I could remove all click handlers
-	//and put the winnerDiv above it --- checking this out first.
-	
-	/*var gridDivs = document.querySelectorAll('.grid-container');
-	for (var grid = 0; grid < gridDivs.length; grid++) {
-		gridDivs[grid].style.visibility='hidden';
+function gameOverCleanup(playerWin) {
+	if (playerWin) {
+		var winnerMessage = "Congratulations! You win!";
+	} else if (!playerWin) {
+		var winnerMessage = "All your ships have been sunk! You lose. Better luck next time!";
 	}
-*/
-	//TRY turn off click handlers instead
+	
+	//TRYING to turn off click handlers to make game be over
+	//but board still visible, not working atm
+	//may have to rethink
 	getCellClickHandler('computer', 'remove');
 	getCellClickHandler('player', 'remove');
 
 	//create a message for the winner
 	var winnerDiv = document.createElement('div');
+	winnerDiv.setAttribute('id', 'win-block');
+	var gameOverHeading = document.createElement('h3');
+	var gameOverText = document.createTextNode('GAME OVER');
 	var winnerPara = document.createElement('p');
 	var winnerText = document.createTextNode(winnerMessage);
+	gameOverHeading.appendChild(gameOverText);
+	winnerDiv.appendChild(gameOverHeading);
 	winnerPara.appendChild(winnerText);
 	winnerDiv.appendChild(winnerPara);
 	document.body.appendChild(winnerDiv);
-
-	//below is just for reference on dom stuff for now
-	/*var rotateDiv = document.getElementById('rotate-button-div');
-	var rotateButton = document.createElement('button');
-	rotateButton.setAttribute('id', 'rotate-button');
-	rotateButton.innerText = "Rotate";
-	rotateDiv.appendChild(rotateButton);
-	rotateButton.addEventListener('click', rotateShip);*/
 }
 /***************   GENERAL HELPER FUNCTIONS      ***********************/
 
