@@ -954,13 +954,22 @@ function firstHitOnShip(shipNumberClass) {
 
 function gameOverCleanup(winnerMessage) {
 	console.log(winnerMessage);
+
+	//winner message prints twice when player wins
+	//has to do with being called on comp and player turns
+	
 	//hides the board
 	//perhaps instead of hiding the board I could remove all click handlers
 	//and put the winnerDiv above it --- checking this out first.
-	var gridDivs = document.querySelectorAll('.grid-container');
+	
+	/*var gridDivs = document.querySelectorAll('.grid-container');
 	for (var grid = 0; grid < gridDivs.length; grid++) {
 		gridDivs[grid].style.visibility='hidden';
 	}
+*/
+	//TRY turn off click handlers instead
+	getCellClickHandler('computer', 'remove');
+	getCellClickHandler('player', 'remove');
 
 	//create a message for the winner
 	var winnerDiv = document.createElement('div');
