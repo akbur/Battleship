@@ -5,7 +5,7 @@ PLAN - TO DO
 -Read over the standards that Hack Reactor sent for their program / airbnb styling guide
 
 -When Player is placing ship, hover the image of the ship
--Don't allow illegal ship placements by player
+-Don't allow ship overlap during placement
 -Work on CSS to make the gameboard nice
 -Get rid of Ship heading and rotate button after ships are placed.
 	-maybe instead of hiding buttons, contain all of it in a container and hide the entire thing when ships are placed, 
