@@ -1,6 +1,6 @@
 
 /***** VARIABLES *****/
-
+//shouldn't have so many global variables that change
 var gridSize = 10;
 var numShipsPlaced = 0;
 var numberOfShips = 5;
@@ -9,6 +9,7 @@ var currentShipName, currentShipSize, currentCell;
 var xCoordLimit = gridSize;
 var yCoordLimit = gridSize;
 var xCoord, yCoord;
+var gameOverAnnounced = false;
 
 var lastMove = {
 	cellHit: false,
@@ -226,7 +227,7 @@ function addRotateButton() {
 	var rotateDiv = document.getElementById('rotate-button-div');
 	var rotateButton = document.createElement('button');
 	rotateButton.setAttribute('id', 'rotate-button');
-	rotateButton.innerText = "Rotate";
+	rotateButton.innerText = "Rotate Ship";
 	rotateDiv.appendChild(rotateButton);
 	rotateButton.addEventListener('click', rotateShip);
 }
@@ -969,30 +970,33 @@ function firstHitOnShip(shipNumberClass) {
  }
 
 function gameOverCleanup(playerWin) {
-	if (playerWin) {
-		var winnerMessage = "Congratulations! You win!";
-	} else if (!playerWin) {
-		var winnerMessage = "All your ships have been sunk! You lose. Better luck next time!";
-	}
-	
-	//TRYING to turn off click handlers to make game be over
-	//but board still visible, not working atm
-	//may have to rethink
-	getCellClickHandler('computer', 'remove');
-	getCellClickHandler('player', 'remove');
+	if (!gameOverAnnounced) {
+		if (playerWin) {
+			var winnerMessage = "Congratulations! You win!";
+		} else if (!playerWin) {
+			var winnerMessage = "All your ships have been sunk! You lose. Better luck next time!";
+		}
+		
+		//TRYING to turn off click handlers to make game be over
+		//but board still visible, not working atm
+		//may have to rethink
+		getCellClickHandler('computer', 'remove');
+		getCellClickHandler('player', 'remove');
 
-	//create a message for the winner
-	var winnerDiv = document.createElement('div');
-	winnerDiv.setAttribute('id', 'win-block');
-	var gameOverHeading = document.createElement('h3');
-	var gameOverText = document.createTextNode('GAME OVER');
-	var winnerPara = document.createElement('p');
-	var winnerText = document.createTextNode(winnerMessage);
-	gameOverHeading.appendChild(gameOverText);
-	winnerDiv.appendChild(gameOverHeading);
-	winnerPara.appendChild(winnerText);
-	winnerDiv.appendChild(winnerPara);
-	document.body.appendChild(winnerDiv);
+		//create a message for the winner
+		var winnerDiv = document.createElement('div');
+		winnerDiv.setAttribute('id', 'win-block');
+		var gameOverHeading = document.createElement('h3');
+		var gameOverText = document.createTextNode('GAME OVER');
+		var winnerPara = document.createElement('p');
+		var winnerText = document.createTextNode(winnerMessage);
+		gameOverHeading.appendChild(gameOverText);
+		winnerDiv.appendChild(gameOverHeading);
+		winnerPara.appendChild(winnerText);
+		winnerDiv.appendChild(winnerPara);
+		document.body.appendChild(winnerDiv);
+	}
+	gameOverAnnounced = true;
 }
 /***************   GENERAL HELPER FUNCTIONS      ***********************/
 

@@ -54,7 +54,6 @@ h2, h3{
 }
 
 #rotate-button {
-	width: 50px;
 	height: 18px;
 	margin: 10px auto;
 	padding: 10px auto;
@@ -96,11 +95,12 @@ h2, h3{
 }
 
 .compship {
-	background-color: Purple;
+	/*background-color: Purple;*/
+	background-color: SteelBlue;
 }
 
 .hit {
-	background-color:red;
+	background-color:FireBrick;
 }
 
 

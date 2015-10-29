@@ -6,10 +6,7 @@ GAMEPLAY
 -(SmarterComputer) - make it so that before going back to random, see if there has been an initial hit on any ships (that may have been abandoned if ships were placed touching)
 -perhaps player can't select cell they've already selected/
 
--Fix removing click handlers after game is over
--Win message showing twice when player wins, then repeatedly
-	upon clicking the gameboard and computer continues to move
-
+-Win message showing repeatedly upon clicking the gameboard
 
 TODO After basic gameplay is complete: 
 -when window is minimized, enemy fleet should be below the first board, instead both heading are on top
@@ -19,3 +16,11 @@ TODO After basic gameplay is complete:
 -get rid of purple ship color
 -add more comments
 
+IMPROVEMENTS
+-Add Play Again Button at the end.
+-Add instructions after the ships disappear in a instruct-block
+-Currently, cells aren't being marked at the end of the game, but if player continues to click the scrren, cells are being chosen by computer behind the scenes
+-Improve CSS styling
+-Add an Auto Place Ship button for player
+-Make it so ships aren't placed so close together.
+-Implement Higher Order Functions
