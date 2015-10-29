@@ -1,11 +1,11 @@
 //Text Based Battleship Game Plan
 
 GAMEPLAY
--ship hover should be correct ship size
--Don't allow ship overlap during placement
+-ship hover only on legal placements (to avoid current error)
+	^must fix legal placement first - no ship overlap allowed
 -(SmarterComputer) - make it so that before going back to random, see if there has been an initial hit on any ships (that may have been abandoned if ships were placed touching)
--win message appears twice on player wins
 -perhaps player can't select cell they've already selected/
+
 -Fix removing click handlers after game is over
 -Win message showing twice when player wins, then repeatedly
 	upon clicking the gameboard and computer continues to move
@@ -17,4 +17,5 @@ TODO After basic gameplay is complete:
 -take out console.logs and debug stuff
 -Read over the standards that Hack Reactor sent for their program / airbnb styling guide and make changes (should have done that first)
 -get rid of purple ship color
+-add more comments
 

@@ -488,29 +488,42 @@ function beginHoverEffect() {
 function shipPlacementHover() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
-	//console.log('('+x+','+y+')');
-	var playerCell = getCell('player', x, y);
-	playerCell.className += ' placeship';
+	var cell = [];
+	cell[0] = getCell('player', x, y);
+	cell[0].className += ' placeship';
 	if (shipDirection === 'horizontal') {
-		var cell2 = getAdjacentCell2('right', x, y);
-		cell2.className += ' placeship';
+		for (var i = 1; i < currentShipSize; i++) {
+			cell[i] = getAdjacentCell2('right', x, y);
+			cell[i].className += ' placeship';
+			x++;
+		}	
 	} else if (shipDirection === 'vertical') {
-		var cell2 = getAdjacentCell2('up', x, y);
-		cell2.className += ' placeship';
-	}
+		for (var i = 1; i < currentShipSize; i++) {
+			cell[i] = getAdjacentCell2('up', x, y);
+			cell[i].className += ' placeship';
+			y++;
+		}
+	}	
 }
 
 function removeShipHover() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
-	var playerCell = getCell('player', x, y);
-	playerCell.classList.remove('placeship');
+	var cell = [];
+	cell[0] = getCell('player', x, y);
+	cell[0].classList.remove('placeship');
 	if (shipDirection === 'horizontal') {
-			var cell2 = getAdjacentCell2('right', x, y);
-			cell2.classList.remove('placeship');
+		for (var i = 1; i < currentShipSize; i++) {
+			cell[i] = getAdjacentCell2('right', x, y);
+			cell[i].classList.remove('placeship');
+			x++;
+		}	
 	} else if (shipDirection === 'vertical') {
-		var cell2 = getAdjacentCell2('up', x, y);
-		cell2.classList.remove('placeship');
+		for (var i = 1; i < currentShipSize; i++) {
+			cell[i] = getAdjacentCell2('up', x, y);
+			cell[i].classList.remove('placeship');
+			y++;
+		}
 	}
 }
 
@@ -917,9 +930,7 @@ function firstHitOnShip(shipNumberClass) {
 	return true;
 }
 /************** GAME OVER **************/
-//TODO: finish this
-//if isGameWon() then need to call a function to do some sort
-//of cleanup & also need more than a log to console about winner
+
  function isGameWon() {
  	var playerWin;
  	if (areAllShipsSunk('player')) {
