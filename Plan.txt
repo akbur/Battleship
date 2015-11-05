@@ -5,6 +5,7 @@ GAMEPLAY
 -I think the interruption seems to come when player hits while computer hitting
 
 TODO After basic gameplay is complete: 
+-FIX STYLING
 -when window is minimized, enemy fleet should be below the first board, instead both heading are on top
 -figure out a better solution for all these global scope variables
 -take out console.logs and debug stuff

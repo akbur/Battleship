@@ -631,12 +631,33 @@ function computerFire() {
 	playerTurn();
 }
 
+function otherDamagedShip() {
+	console.log('checking for other damaged ship');
+	//loop through every player cell
+	forEachCell('player', function(cell){
+
+		//if there is a ship that has been damaged but not yet sunk
+		if (cellContainsClass(cell, 'hit') && !cellContainsClass(cell, 'sunk')) {
+
+			//that cell becomes the new initial hit
+			initialHit.recordCoords(cell.dataset.x, cell.dataset.y);
+			return true;
+		} else return false;
+	});
+}
+
 function determineTypeOfFire() {
 	//if the ship computer has been targeting is sunk
-	//change the status back to random
 	if (cellContainsClass(currentCell, 'sunk')) {
-		compMove.status = "targetingRandomCell";
+
+		//if there are no other hit ships
+		if (!otherDamagedShip()) {
+			
+			//change the status back to random
+			compMove.status = "targetingRandomCell";
+		}
 	}
+
 	console.log("compMove.status: " + compMove.status);
 	//then determine type of fire based on status
 	if (compMove.status === "targetingRandomCell") {
@@ -657,7 +678,7 @@ function targetPlayerCell(type) {
 	var alreadyMarked;
 	var cell;
 
-	if (type === "random") {
+	if (type === 'random') {
 		do {
 			getRandomPlayerCellCoords();
 			cell = getCell('player', xCoord, yCoord);
@@ -689,7 +710,7 @@ function markPlayerCell() {
 			} else {
 				 if(firstHitOnShip(shipNumberClass)) {
 				 	initialHit.recordCoords();
-				 	compMove.status = "targetingSpecificCell";
+				 	compMove.status = 'targetingSpecificCell';
 				 }
 				status = markCellHit();
 			}
@@ -702,7 +723,7 @@ function markPlayerCell() {
 
 function getSpecificPlayerCoords() {
 	if (lastMove.cellSunk) {
-			console.log("that one sunk the ship");
+			console.log('that one sunk the ship');
 			compMove.status = "targetingRandomCell";
 			this.stage = 0;
 			determineTypeOfFire();
