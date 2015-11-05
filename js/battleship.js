@@ -5,11 +5,19 @@ var gridSize = 10;
 var numShipsPlaced = 0;
 var numberOfShips = 5;
 var shipDirection = 'horizontal';
-var currentShipName, currentShipSize, currentCell;
+//FIX V
+var currentShipName, currentShipSize;
 var xCoordLimit = gridSize;
 var yCoordLimit = gridSize;
 var xCoord, yCoord;
 var gameOverAnnounced = false;
+
+current = {
+	playerCell: getCell('player', 1, 1),
+	compCell: getCell('computer', 1, 1),
+	shipSize: 0,
+	shipName: '',
+}
 
 var lastMove = {
 	cellHit: false,
@@ -67,9 +75,9 @@ var nextMove = {
 var initialHit = {
 	cellXCoord: 0,
 	cellYCoord: 0,
-	recordCoords: function() {
-		this.cellXCoord = currentCell.dataset.x;
-		this.cellYCoord = currentCell.dataset.y;
+	recordCoords: function(x, y) {
+		this.cellXCoord = x;
+		this.cellYCoord = y;
 		nextMove.stage = 0;
 		console.log("INITIAL HIT: " + this.cellXCoord + ', ' + this.cellYCoord);
 	},
@@ -142,13 +150,13 @@ function getCell(user, x, y) {
 function getPlayerCellFromEvent() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
-	currentCell = getCell('player', x, y);
+	current.playerCell = getCell('player', x, y);
 }
 
 function getComputerCellFromEvent() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
-	currentCell = getCell('computer', x, y);
+	current.compCell = getCell('computer', x, y);
 }
 
 function getCellClickHandler(user, addOrRemove) {
@@ -166,7 +174,13 @@ function getCellClickHandler(user, addOrRemove) {
 }
 
 function getAdjacentCell(user) {
-	var cell = currentCell;
+
+	if (user === 'player') {
+		var cell = current.playerCell;
+	} else if (user === 'computer') {
+		var cell = current.compCell;
+	}
+	
 	var x = parseInt(cell.dataset.x);
 	var y = parseInt(cell.dataset.y);
 	
@@ -322,10 +336,10 @@ function computerPlaceShip(shipName) {
 	
 
 	//Place ship in a legal space
-	currentCell = getLegalComputerCell(shipSize);
-	cellHasComputerShip();
+	current.compCell = getLegalComputerCell(shipSize);
+	cellHasComputerShip(current.compCell);
 	numShipsPlaced++;
-	addShipNumberClass();
+	addShipNumberClass(current.compCell);
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("computer");
 	}
@@ -384,27 +398,29 @@ function statusPlayerPlaceShips() {
 }
 
 function playerPlaceShip() {
-	cellHasPlayerShip();
-	addShipNumberClass();
+	cellHasPlayerShip(current.playerCell);
+	addShipNumberClass(current.playerCell);
 	var shipSize = currentShipSize;
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("player");
 	}
 }
 
-function addShipNumberClass() {
+function addShipNumberClass(cell) {
 	var shipNumberClass = " ship_number_" + numShipsPlaced;
-	currentCell.className += shipNumberClass;
+	cell.className += shipNumberClass;
 }
 
 function markAdjacentCell(user){
-	currentCell = getAdjacentCell(user);
-	addShipNumberClass();
+	var currentCell = getAdjacentCell(user);
 	if (user === 'player') {
-		cellHasPlayerShip();
+		current.playerCell = currentCell;
+		cellHasPlayerShip(currentCell);
 	} else if (user ==='computer') {
-		cellHasComputerShip();
+		current.compCell = currentCell;
+		cellHasComputerShip(currentCell);
 	}
+	addShipNumberClass(currentCell);
 }
 
 function shipPlacementLegal(x, y) {
@@ -569,18 +585,18 @@ function playerFire() {
 
 function markComputerCell() {
 	var numCellsHit = 1;
-	var shipNumberClass = getShipNumberClass();
+	var shipNumberClass = getShipNumberClass(current.compCell);
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
 	
 	if(!isGameWon()){	//if the game still continues
-		if (cellContainsClass(currentCell, 'compship')){ //if the computer cell contains ship
+		if (cellContainsClass(current.compCell, 'compship')){ //if the computer cell contains ship
 			if (shipSunk) {						//if hitting this cell should sink that ship
 				markShipSunk(shipNumberClass);	//mark the entire ship as sunk
 			} else {							//else if the hit shouldn't sink that ship
-				markCellHit(); 					//mark the cell as a hit
+				markCellHit(current.compCell); 					//mark the cell as a hit
 			}
 		} else { 								//if the computer cell doesn't contain a ship
-			markCellMiss();						//mark cell as a miss
+			markCellMiss(current.compCell);						//mark cell as a miss
 		}
 	}
 }
@@ -601,8 +617,7 @@ function isShipSunk(numCellsHit, shipNumberClass) {
 }
 
 //returns the ship number of the current ship cell
-function getShipNumberClass() {
-	var cell = currentCell;
+function getShipNumberClass(cell) {
 	var shipNumberClass = '';
 	for (var i = 1; i <= numberOfShips * 2; i++) {
 		shipNumberClass = ("ship_number_" + i);
@@ -625,8 +640,8 @@ function computerTurnClickHanders() {
 }
 
 function computerFire() {
-	currentCell	= determineTypeOfFire();
-	console.log("currentCell: (" + currentCell.dataset.x + ", " + currentCell.dataset.y + ")");
+	current.playerCell = determineTypeOfFire();
+	console.log("currentPlayerCell: (" + current.playerCell.dataset.x + ", " + current.playerCell.dataset.y + ")");
 	markPlayerCell();
 	playerTurn();
 }
@@ -648,7 +663,7 @@ function otherDamagedShip() {
 
 function determineTypeOfFire() {
 	//if the ship computer has been targeting is sunk
-	if (cellContainsClass(currentCell, 'sunk')) {
+	if (cellContainsClass(current.playerCell, 'sunk')) {
 
 		//if there are no other hit ships
 		if (!otherDamagedShip()) {
@@ -700,22 +715,23 @@ function targetPlayerCell(type) {
 function markPlayerCell() {
 	var numCellsHit = 1;
 	var status;
-	var shipNumberClass = getShipNumberClass();
+	var shipNumberClass = getShipNumberClass(current.playerCell);
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
+	var cell = current.playerCell;
 
 	if (!isGameWon()) { //if the game still continues
-		if (cellContainsClass(currentCell, 'ship')){
+		if (cellContainsClass(cell, 'ship')){
 			if (shipSunk) {
 				status = markShipSunk(shipNumberClass);
 			} else {
 				 if(firstHitOnShip(shipNumberClass)) {
-				 	initialHit.recordCoords();
+				 	initialHit.recordCoords(cell.dataset.x, cell.dataset.y);
 				 	compMove.status = 'targetingSpecificCell';
 				 }
-				status = markCellHit();
+				status = markCellHit(current.playerCell);
 			}
 		} else {
-			status = markCellMiss();
+			status = markCellMiss(current.playerCell);
 		}
 		lastMove.updateStatus(status);
 	}
@@ -1067,33 +1083,29 @@ function getOppositeDirection(direction) {
 /****************** MARK CELLS **********************************/
 
 //Adds ship class to current cell
-function cellHasPlayerShip() {
+function cellHasPlayerShip(cellToMark) {
 	var status = 'ship';
-	var cellToMark = currentCell;
 	cellToMark.className += " ship";
 	return status;
 }
 
 //Adds compship class to current cell
-function cellHasComputerShip() {
+function cellHasComputerShip(cellToMark) {
 	var status = 'compship';
-	var cellToMark = currentCell;
 	cellToMark.className += " compship";
 	return status;
 }
 
 //Adds hit class to current cell
-function markCellHit() {
+function markCellHit(cellToMark) {
 	var status = 'hit';
-	var cellToMark = currentCell;
 	cellToMark.className += " hit";
 	return status;
 }
 
 //Adds miss class to current cell
-function markCellMiss() {
+function markCellMiss(cellToMark) {
 	var status = 'miss';
-	var cellToMark = currentCell;
 	cellToMark.className += " miss";
 	return status;
 }
