@@ -48,6 +48,12 @@ h2, h3{
 	padding-bottom: 20px;
 }
 
+#ship-instructions {
+	font-size: .5em;
+	font-weight: normal;
+	width: 100%;
+}
+
 #rotate-botton-div {
 	width: 100%;
 	text-align: center;
