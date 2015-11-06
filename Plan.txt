@@ -5,7 +5,6 @@ GAMEPLAY
 TODO After basic gameplay is complete: 
 -FIX STYLING
 -when window is minimized, enemy fleet should be below the first board, instead both heading are on top
--figure out a better solution for all these global scope variables
 -take out console.logs and debug stuff
 -add more comments
 -Player can't select a cell they've already selected

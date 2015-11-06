@@ -1040,6 +1040,7 @@ function gameOverCleanup(playerWin) {
 	}
 	current.gameOverAnnounced = true;
 }
+
 /***************   GENERAL HELPER FUNCTIONS      ***********************/
 
 function forEachCell(user, callback){
