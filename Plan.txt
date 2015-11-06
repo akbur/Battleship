@@ -1,18 +1,13 @@
 //Text Based Battleship Game Plan
 
-GAMEPLAY
-
-TODO After basic gameplay is complete: 
 -FIX STYLING
--when window is minimized, enemy fleet should be below the first board, instead both heading are on top
 -take out console.logs and debug stuff
 -add more comments
--Player can't select a cell they've already selected
-- add gameplay instructions in an instruct-block;
+-Implement Higher Order Functions
 
 IMPROVEMENTS
 -Add Play Again Button at the end.
 -Improve CSS styling
 -Add an Auto Place Ship button for player
 -Make it so ships aren't placed so close together.
--Implement Higher Order Functions
+-Player can't select a cell they've already selected
