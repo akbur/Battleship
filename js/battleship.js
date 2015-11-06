@@ -50,16 +50,16 @@ var lastMove = {
 var nextMove = {
 	stage: 0,
 	status: 'continueDirection',
-	direction: "",
-	getOppositeDirection: function() {;
+	direction: '',
+	getOppositeDirection: function() {
 		return getOppositeDirection(this.direction);
 	},
-	setMove: function(move){
+	setMove: function(move) {
 		this.move = move;
 		console.log('nextMove.setMove: ' + move);
 	},
 	getMove: function() {
-		console.log("getting move");
+		console.log('getting move');
 		return this.move;
 	},
 	determineStage: function() {
@@ -167,9 +167,9 @@ function getCellClickHandler(user, addOrRemove) {
 	
 	forEachCell(user, function(cell){ 
 		if (addOrRemove === 'add') {
-			cell.addEventListener("click", getCellFromEvent);
+			cell.addEventListener('click', getCellFromEvent);
 		} else if (addOrRemove === 'remove') {
-			cell.removeEventListener("click", getCellFromEvent);
+			cell.removeEventListener('click', getCellFromEvent);
 		}
 	});
 }
@@ -185,9 +185,9 @@ function getAdjacentCell(user) {
 	var x = parseInt(cell.dataset.x);
 	var y = parseInt(cell.dataset.y);
 	
-	if (current.shipDirection === "vertical") {
+	if (current.shipDirection === 'vertical') {
 		y += 1;
-	} else if (current.shipDirection === "horizontal") {
+	} else if (current.shipDirection === 'horizontal') {
 		x += 1;
 	}
 
@@ -216,11 +216,11 @@ function customizeShipButton(index, name, size){
 }
 
 function setShipButtons() {
-	customizeShipButton(0, "Patrol", 2);
-	customizeShipButton(1, "Destroyer", 3);
-	customizeShipButton(2, "Submarine", 3);
-	customizeShipButton(3, "Battleship", 4);
-	customizeShipButton(4, "Carrier", 5);
+	customizeShipButton(0, 'Patrol', 2);
+	customizeShipButton(1, 'Destroyer', 3);
+	customizeShipButton(2, 'Submarine', 3);
+	customizeShipButton(3, 'Battleship', 4);
+	customizeShipButton(4, 'Carrier', 5);
 }
 
 function getShipButton() {
@@ -242,22 +242,22 @@ function addRotateButton() {
 	var rotateDiv = document.getElementById('rotate-button-div');
 	var rotateButton = document.createElement('button');
 	rotateButton.setAttribute('id', 'rotate-button');
-	rotateButton.innerText = "Rotate Ship";
+	rotateButton.innerText = 'Rotate Ship';
 	rotateDiv.appendChild(rotateButton);
 	rotateButton.addEventListener('click', rotateShip);
 }
 
 function rotateShip() {
-	if (current.shipDirection === "vertical") {
-		current.shipDirection = "horizontal";
-	} else if (current.shipDirection === "horizontal") {
-		current.shipDirection = "vertical";
+	if (current.shipDirection === 'vertical') {
+		current.shipDirection = 'horizontal';
+	} else if (current.shipDirection === 'horizontal') {
+		current.shipDirection = 'vertical';
 	}
 }
 
 function removeShipPlacementDiv() {
 	var shipBlock = document.getElementById('ship-block');
-	shipBlock.style.display = "none";
+	shipBlock.style.display = 'none';
 }
 
 /***************** COMPUTER SHIP PLACEMENT***********************/
@@ -346,7 +346,7 @@ function computerPlaceShip(shipName) {
 	current.numShipsPlaced++;
 	addShipNumberClass(current.compCell);
 	for (var i = 1; i < shipSize; i++) {
-		markAdjacentCell("computer");
+		markAdjacentCell('computer');
 	}
 }
 
@@ -381,7 +381,7 @@ function addShipPlacementClickHandlers() {
 
 	//cell click handlers
 	forEachCell('player', function(cell){
-		cell.addEventListener("click", statusPlayerPlaceShips);
+		cell.addEventListener('click', statusPlayerPlaceShips);
 	});
 }
 
@@ -407,12 +407,12 @@ function playerPlaceShip() {
 	addShipNumberClass(current.playerCell);
 	var shipSize = current.shipSize;
 	for (var i = 1; i < shipSize; i++) {
-		markAdjacentCell("player");
+		markAdjacentCell('player');
 	}
 }
 
 function addShipNumberClass(cell) {
-	var shipNumberClass = " ship_number_" + current.numShipsPlaced;
+	var shipNumberClass = ' ship_number_' + current.numShipsPlaced;
 	cell.className += shipNumberClass;
 }
 
@@ -490,7 +490,7 @@ function allPlayerShipsPlaced() {
 function removeShipPlacementClickHandlers() {
 	//cell click handlers
 	forEachCell('player', function(cell){
-		cell.removeEventListener("click", statusPlayerPlaceShips);
+		cell.removeEventListener('click', statusPlayerPlaceShips);
 	});
 
 	//ship button click handlers
@@ -505,7 +505,7 @@ function removeShipPlacementClickHandlers() {
 function beginHoverEffect() {
 	//need to add in here if the placement is legal
 	forEachCell('player', function(cell){
-		cell.addEventListener("mouseover", shipPlacementHover);
+		cell.addEventListener('mouseover', shipPlacementHover);
 		cell.addEventListener('mouseout', removeShipHover);
 	});
 }
@@ -558,7 +558,7 @@ function removeShipHover() {
 
 function endHoverEffect() {
 	forEachCell('player', function(cell){
-		cell.removeEventListener("mouseover", shipPlacementHover);
+		cell.removeEventListener('mouseover', shipPlacementHover);
 		cell.removeEventListener('mouseout', removeShipHover);
 	});
 }
@@ -625,7 +625,7 @@ function isShipSunk(numCellsHit, shipNumberClass) {
 function getShipNumberClass(cell) {
 	var shipNumberClass = '';
 	for (var i = 1; i <= _numberOfShips * 2; i++) {
-		shipNumberClass = ("ship_number_" + i);
+		shipNumberClass = ('ship_number_' + i);
 		if (cellContainsClass(cell, shipNumberClass)){
 			return shipNumberClass;
 		}
@@ -646,7 +646,7 @@ function computerTurnClickHanders() {
 
 function computerFire() {
 	current.playerCell = determineTypeOfFire();
-	console.log("currentPlayerCell: (" + current.playerCell.dataset.x + ", " + current.playerCell.dataset.y + ")");
+	console.log('currentPlayerCell: (" + current.playerCell.dataset.x + ", " + current.playerCell.dataset.y + ")');
 	markPlayerCell();
 	playerTurn();
 }
@@ -677,17 +677,17 @@ function determineTypeOfFire() {
 		if (otherDamagedShip()) current.targetStatus = 'targetingSpecificCell';
 		
 		//otherwise, change the status back to random
-		else current.targetStatus = "targetingRandomCell";
+		else current.targetStatus = 'targetingRandomCell';
 	}
 
-	console.log("current.targetStatus: " + current.targetStatus);
+	console.log('current.targetStatus: ' + current.targetStatus);
 	//then determine type of fire based on status
-	if (current.targetStatus === "targetingRandomCell") {
-		return targetPlayerCell("random");
+	if (current.targetStatus === 'targetingRandomCell') {
+		return targetPlayerCell('random');
 	
 	//marked as this after an initial hit on a ship
-	} else if (current.targetStatus === "targetingSpecificCell") {
-		return targetPlayerCell("specific");
+	} else if (current.targetStatus === 'targetingSpecificCell') {
+		return targetPlayerCell('specific');
 	}
 }
 
@@ -747,7 +747,7 @@ function markPlayerCell() {
 function getSpecificPlayerCoords() {
 	if (lastMove.cellSunk) {
 			console.log('that one sunk the ship');
-			current.targetStatus = "targetingRandomCell";
+			current.targetStatus = 'targetingRandomCell';
 			this.stage = 0;
 			determineTypeOfFire();
 	} else {
@@ -798,7 +798,7 @@ function createPlanStage1() {
 		nextMove.stage1Plan.push(currentMove);
 		//test to see if the move hits
 		var doesMoveHit = cellContainsClass(currentMove, 'ship');
-		console.log("Does the move we added to the plan hit?: " + doesMoveHit);
+		console.log('Does the move we added to the plan hit?: ' + doesMoveHit);
 	} while (!doesMoveHit); //do the above while move doesn't hit
 
 	nextMove.stage = 1;
@@ -832,7 +832,7 @@ function getMoveForPlan(initX, initY, moveOptions) {
 	var currentDirection = determineMoveDirection(move, initX, initY);
 	nextMove.direction = currentDirection;
 
-	console.log("chosen random cell from move options: " + move.dataset.x + ", " + move.dataset.y);
+	console.log('chosen random cell from move options: ' + move.dataset.x + ", " + move.dataset.y);
 
 	return move;
 }
@@ -942,13 +942,13 @@ function determineMoveDirection(moveCell, initX, initY) {
 	var newY = moveCell.dataset.y;
 
 	if (newX - initX === -1) {
-		direction = "left";
+		direction = 'left';
 	} else if (newX - initX === 1) {
-		direction = "right";
+		direction = 'right';
 	} else if (newY - initY === 1) {
-		direction = "up";
+		direction = 'up';
 	} else if (newY - initY === -1) {
-		direction = "down";
+		direction = 'down';
 	}
 	return direction;
 }
@@ -958,7 +958,7 @@ function getNextMoveSameDirection(move, direction) {
 	var y = move.dataset.y;
 	var newMove = getAdjacentCell2(direction, x, y);
 	
-	console.log("getNextMoveSameDirection: " + x + ', ' + y);
+	console.log('getNextMoveSameDirection: ' + x + ', ' + y);
 	console.log("and the last move is: (" + move.dataset.x + ', ' + move.dataset.y +')');
 	console.log("and the next move is: (" + newMove.dataset.x + ', ' + newMove.dataset.y +')');
 	
@@ -968,7 +968,7 @@ function getNextMoveSameDirection(move, direction) {
 function firstHitOnShip(shipNumberClass) {
 	var shipCells = document.getElementsByClassName(shipNumberClass);
 	for (var i = 0; i < shipCells.length; i++) {
-		if (shipCells[i].classList.contains("hit")) {
+		if (shipCells[i].classList.contains('hit')) {
 			return false;
 		}
 	}
@@ -1014,9 +1014,9 @@ function firstHitOnShip(shipNumberClass) {
 function gameOverCleanup(playerWin) {
 	if (!current.gameOverAnnounced) {
 		if (playerWin) {
-			var winnerMessage = "Congratulations! You win!";
+			var winnerMessage = 'Congratulations! You win!';
 		} else if (!playerWin) {
-			var winnerMessage = "All your ships have been sunk! You lose. Better luck next time!";
+			var winnerMessage = 'All your ships have been sunk! You lose. Better luck next time!';
 		}
 		
 		//TRYING to turn off click handlers to make game be over
@@ -1081,28 +1081,28 @@ function getOppositeDirection(direction) {
 //Adds ship class to current cell
 function cellHasPlayerShip(cellToMark) {
 	var status = 'ship';
-	cellToMark.className += " ship";
+	cellToMark.className += ' ship';
 	return status;
 }
 
 //Adds compship class to current cell
 function cellHasComputerShip(cellToMark) {
 	var status = 'compship';
-	cellToMark.className += " compship";
+	cellToMark.className += ' compship';
 	return status;
 }
 
 //Adds hit class to current cell
 function markCellHit(cellToMark) {
 	var status = 'hit';
-	cellToMark.className += " hit";
+	cellToMark.className += ' hit';
 	return status;
 }
 
 //Adds miss class to current cell
 function markCellMiss(cellToMark) {
 	var status = 'miss';
-	cellToMark.className += " miss";
+	cellToMark.className += ' miss';
 	return status;
 }
 
