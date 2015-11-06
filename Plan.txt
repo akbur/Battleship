@@ -1,13 +1,7 @@
-//Text Based Battleship Game Plan
 
--FIX STYLING
--take out console.logs and debug stuff
--add more comments
--Implement Higher Order Functions
-
-IMPROVEMENTS
--Add Play Again Button at the end.
+TODO / FIXME:
 -Improve CSS styling
+-Add Play Again Button at the end
 -Add an Auto Place Ship button for player
--Make it so ships aren't placed so close together.
--Player can't select a cell they've already selected
+-Make it so computer ships aren't placed so close together.
+-Player can't select a cell they've already selected it.

@@ -1,6 +1,4 @@
 
-
-
 /***** *****    Declare and Initialize Variables   ***** *****/
 
 var _gridSize = 10;
@@ -82,7 +80,7 @@ var initialHit = {
 	},
 };
 
-/**** GAMEPLAY *****/
+/****     *****     GAMEPLAY     *****     *****/
 
 setupGame();
 
@@ -114,6 +112,7 @@ function beginRounds() {
 	playerTurn();
 	//computerTurn will be called when playerTurn complete
 }
+
 /***************** SETUP *******************************/
 
 //creates the two gameboard grids
@@ -403,14 +402,18 @@ function addShipPlacementClickHandlers() {
 	});
 }
 
+//on clicking a ship button, sets the current shipName and shipSize
 function getShipFromClick() {
 	current.shipName = this.dataset.name;
 	current.shipSize = this.dataset.size;
 }
 
+
+//called when gameboard cell is clicked during player ship placement
 function statusPlayerPlaceShips() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
+	
 	if (shipPlacementLegal(x, y)) {
 		current.numShipsPlaced++;
 		playerPlaceShip();
@@ -420,6 +423,7 @@ function statusPlayerPlaceShips() {
 	}
 }
 
+//places a player ship
 function playerPlaceShip() {
 	cellHasPlayerShip(current.playerCell);
 	addShipNumberClass(current.playerCell);
@@ -429,11 +433,13 @@ function playerPlaceShip() {
 	}
 }
 
+//adds a ship number class to a ship
 function addShipNumberClass(cell) {
 	var shipNumberClass = ' ship_number_' + current.numShipsPlaced;
 	cell.className += shipNumberClass;
 }
 
+//used to mark cells adjacent to the current cell during ship placement
 function markAdjacentCell(user) {
 	var currentCell = getAdjacentCell(user);
 	if (user === 'player') {
@@ -446,6 +452,7 @@ function markAdjacentCell(user) {
 	addShipNumberClass(currentCell);
 }
 
+//returns boolean - is ship placement legal
 function shipPlacementLegal(x, y) {
 	if (withinBounds(x, y)) {
 		if (!doesShipOverlap(x, y)) {
@@ -455,6 +462,7 @@ function shipPlacementLegal(x, y) {
 	return false;;
 }
 
+//returns boolean - is ship placement within the gameboard
 function withinBounds(x, y) {
 	if (current.shipDirection === 'horizontal') {
 		if (x <= _gridSize - current.shipSize + 1) {
@@ -467,7 +475,7 @@ function withinBounds(x, y) {
 	} else return false;
 }
 
-//or doesCellContainPlayerShip
+//returns boolean = does the ship overlap another ship
 function doesShipOverlap(x, y) {
 	var numCellsEmpty = 0;
 	
@@ -498,7 +506,7 @@ function doesShipOverlap(x, y) {
 	} else return true;
 }
 
-
+//returns boolean - have all player ships been placed
 function allPlayerShipsPlaced() {
 	//(_numberOfShips*2) because counting computer ships and player ships
 	return (current.numShipsPlaced === (_numberOfShips*2));
@@ -531,10 +539,17 @@ function beginHoverEffect() {
 function shipPlacementHover() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
+
+	//if ship placement is legal
 	if (shipPlacementLegal(x, y)) {
 		var cell = [];
 		cell[0] = getCell('player', x, y);
+		
+		//class placeship will be for hover effect
 		cell[0].className += ' placeship';
+		
+		//get cells equal to the ship's size and mark them class placeship
+		
 		if (current.shipDirection === 'horizontal') {
 			for (var i = 1; i < current.shipSize; i++) {
 				cell[i] = getAdjacentCell2('right', x, y);
@@ -551,6 +566,7 @@ function shipPlacementHover() {
 	}	
 }
 
+//does the opposite of shipPlacementHover to remove effect on mouseout
 function removeShipHover() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
@@ -610,20 +626,35 @@ function markComputerCell() {
 	var shipNumberClass = getShipNumberClass(current.compCell);
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
 	
-	if(!isGameWon()) {	//if the game still continues
-		if (cellContainsClass(current.compCell, 'compship')) { //if the computer cell contains ship
-			if (shipSunk) {						//if hitting this cell should sink that ship
-				markShipSunk(shipNumberClass);	//mark the entire ship as sunk
-			} else {							//else if the hit shouldn't sink that ship
-				markCellHit(current.compCell); 					//mark the cell as a hit
+	//if the game hasn't been won
+	if(!isGameWon()) {
+
+		//if the computer cell contains a ship
+		if (cellContainsClass(current.compCell, 'compship')) { 
+
+			//if hitting this cell should sink that ship
+			if (shipSunk) {		
+
+				//mark the entire ship as sunk		
+				markShipSunk(shipNumberClass);	
+
+			//else if the hit shouldn't sink that ship	
+			} else {	
+
+				//mark the cell as a hit					
+				markCellHit(current.compCell); 					
 			}
-		} else { 								//if the computer cell doesn't contain a ship
-			markCellMiss(current.compCell);						//mark cell as a miss
+
+		//if the computer cell doesn't contain a ship	
+		} else { 				
+
+			//mark cell as a miss			
+			markCellMiss(current.compCell);						
 		}
 	}
 }
 
-//checks to see if all of the cells a particular ship have been hit
+//returns boolean - have all of the cells a particular ship been hit
 function isShipSunk(numCellsHit, shipNumberClass) {
 	var sameShip = document.getElementsByClassName(shipNumberClass);
 	var shipSize = sameShip.length;
@@ -662,7 +693,8 @@ function computerTurnClickHanders() {
 }
 
 function computerFire() {
-	current.playerCell = determineTypeOfFire();
+	var type = determineTypeOfFire();
+	current.playerCell = targetPlayerCell(type);
 	markPlayerCell();
 	playerTurn();
 }
@@ -696,19 +728,21 @@ function determineTypeOfFire() {
 
 	//then determine type of fire based on status
 	if (current.targetStatus === 'targetingRandomCell') {
-		return targetPlayerCell('random');
+		return 'random';
 	
 	//marked as this after an initial hit on a ship
 	} else if (current.targetStatus === 'targetingSpecificCell') {
-		return targetPlayerCell('specific');
+		return 'specific';
 	}
 }
 
+//sets the current (x, y) coords to a random coordinate pair
 function getRandomPlayerCellCoords() {
 	current.xCoord = getRandomInt(1, _gridSize);
 	current.yCoord = getRandomInt(1, _gridSize);
 }
 
+//returns a player cell depending on random/specific type of fire
 function targetPlayerCell(type) {
 	var alreadyMarked;
 	var cell;
@@ -739,32 +773,71 @@ function markPlayerCell() {
 	var shipSunk = isShipSunk(numCellsHit, shipNumberClass);
 	var cell = current.playerCell;
 
-	if (!isGameWon()) { //if the game still continues
+	//if the game still continues
+	if (!isGameWon()) { 
+
+		//if the cell contains a ship
 		if (cellContainsClass(cell, 'ship')) {
+
+			//if this cell should sink that ship
 			if (shipSunk) {
+
+				//mark the entire ship as sunk
 				status = markShipSunk(shipNumberClass);
+
+			//else if this cell should not sink the ship	
 			} else {
+
+				//if this is the first hit on the ship
 				 if(firstHitOnShip(shipNumberClass)) {
+
+				 	//record it as an initial hit
 				 	initialHit.recordCoords(cell.dataset.x, cell.dataset.y);
 				 	current.targetStatus = 'targetingSpecificCell';
 				 }
+
+				//regardless of initital hit, mark the cell as hit
 				status = markCellHit(current.playerCell);
 			}
+
+		//if the cell does not contain a ship	
 		} else {
+
+			//mark the cell as a miss
 			status = markCellMiss(current.playerCell);
 		}
+
+		//update the last move status with status saved above when marking cell
 		lastMove.updateStatus(status);
 	}
 }
 
+/*************** FOR COMPUTER 'SMARTER' MOVES *********************/
+
+/* 
+	I developed STAGES for specific computer moves after the initial damage on a ship.
+	Stage 0 - a plan is created for a sequence of moves until the second hit on a ship.
+	At that point, a direction can be determined and the pattern of cells chosen will change.
+	During stage 0, no moves are made - only a plan is developed.
+	Stage 1 - on each computer turn the next move will be taken from the plan made in stage 0.
+	Stage 2 - a different pattern where the next move depends on the result of previous the move.
+	It lasts from the second hit on a ship until the ship has been sunk.
+*/
+
 function getSpecificPlayerCoords() {
+
+	//if the last move sunk a ship
 	if (lastMove.cellSunk) {
+
+			//go back to targeting random cells
 			current.targetStatus = 'targetingRandomCell';
 			this.stage = 0;
 			determineTypeOfFire();
+	
+	//else get next move depending on stage
 	} else {
 		if (nextMove.stage === 0) {
-			createPlanStage1();
+			createPlan();
 		} 
 		if (nextMove.stage === 1) {
 			getNextMoveFromPlan();
@@ -782,15 +855,7 @@ function getSpecificPlayerCoords() {
 	}
 }
 
-/*************** FOR COMPUTER 'SMARTER' MOVES *********************/
-
-function getNextMoveFromPlan() {
-	//set the next move to the first move on the plan
-	//and remove it from the plan
-	nextMove.setMove(nextMove.stage1Plan.shift());
-	}
-
-function createPlanStage1() {
+function createPlan() {
 	var initX = initialHit.cellXCoord;
 	var initY = initialHit.cellYCoord;
 
@@ -801,14 +866,24 @@ function createPlanStage1() {
 	do {
 		//get move
 		var currentMove = getMoveForPlan(initX, initY, moveOptions);
+
 		//add move to movePlan
 		nextMove.stage1Plan.push(currentMove);
+
 		//test to see if the move hits
 		var doesMoveHit = cellContainsClass(currentMove, 'ship');
-	} while (!doesMoveHit); //do the above while move doesn't hit
+
+	//do the above while move doesn't hit	
+	} while (!doesMoveHit); 
 
 	nextMove.stage = 1;
 }
+
+function getNextMoveFromPlan() {
+	//set the next move to the first move on the plan
+	//and remove it from the plan
+	nextMove.setMove(nextMove.stage1Plan.shift());
+	}
 
 function determineMoveOptions(x, y) {
 	var moveOptions = [];
@@ -816,9 +891,11 @@ function determineMoveOptions(x, y) {
 
 	//loop through all possible directions
 	for (var i = 0; i < directions.length; i++) {
+
 		//if the adjacent cell exists, get and assign it
 		if (hasAdjacentCell(directions[i], x, y)) {
 			var adjacentCell = getAdjacentCell2(directions[i], x, y);
+			
 			//if the cell is empty, push is to the moveOptions array
 			if (isCellEmpty(adjacentCell)) {
 				moveOptions.push(adjacentCell);
@@ -832,8 +909,10 @@ function getMoveForPlan(initX, initY, moveOptions) {
 	//choose a random cell from the moveOptions
 	var moveIndex = getRandomInt(0, moveOptions.length - 1);
 	var move = moveOptions[moveIndex];
+	
 	//remove that option 
 	moveOptions.splice(moveIndex, 1);
+	
 	//determine the direction the first move was in, for future moves
 	var currentDirection = determineMoveDirection(move, initX, initY);
 	nextMove.direction = currentDirection;
@@ -848,8 +927,10 @@ function createPlanStage2() {
 	
 	//get a new move using the last move as reference
 	currentMove = getMoveStage2(lastMove.getCell());
+	
 	//set it as the next move to be made
 	nextMove.setMove(currentMove);
+	
 	//after making the move, it becomes the last move for the next time the function is called
 }
 
@@ -860,38 +941,68 @@ function getMoveStage2() {
 	var currentDirection = nextMove.direction;
 	var oppositeDirection = nextMove.getOppositeDirection();
 
+	
 	if (nextMove.status === 'continueDirection') {
+		
+		//if there is a cell in the current direction
 		if (hasAdjacentCell(currentDirection, lastMove.cellXCoord, lastMove.cellYCoord)) {
+			
 			//start with a move in the direction we have been going
 			currentMove = getNextMoveSameDirection(lastMove.getCell(), currentDirection);
 
-			if (isCellEmpty(currentMove)) { 		//if cell isn't marked hit, miss, or sunk
+			//if cell isn't marked hit, miss, or sunk
+			if (isCellEmpty(currentMove)) { 	
+	
+				//make this move
 				moveToMake = currentMove; 		
-				if (!cellContainsClass(currentMove, 'ship')) { //if move is a miss
+				
+				//if that move is a miss
+				if (!cellContainsClass(currentMove, 'ship')) { 
 
+					//next move will be in the opposite direction
 					nextMove.status = 'changeDirection';
 				}
-			} else {	//if the cell IS marked either hit, miss, or sunk
-				//go ahead and try the other direction from the initial hit
-				//checking first to see if it has an adjacentCell
+			
+			//if the cell IS already marked either hit, miss, or sunk
+			} else {
+
+				
+				//check first to see if it has an adjacentCell
 				if (hasAdjacentCell(oppositeDirection, initX, initY)) {
+					
+					//go ahead and try the other direction from the initial hit
 					currentMove = getAdjacentCell2(oppositeDirection, initX, initY);
-					if (isCellEmpty(currentMove)) {	//if cell isn't marked hit, miss, or sunk
+					
+					//if cell isn't marked hit, miss, or sunk
+					if (isCellEmpty(currentMove)) {	
+						
+						//make this move
 						moveToMake = currentMove; 	
+						
+						//the next move direction will continue in the opposite direction
 						nextMove.direction = oppositeDirection;
 						nextMove.status = 'continueDirection';
 					}
 				}
 			}
 		}
+	
 	} else if (nextMove.status === 'changeDirection') {
-		//go back to the initial hit, and try the other direction
-		//first checking if it has an adjacentCell
+		
+		//if it has an adjacentCell
 		if (hasAdjacentCell(oppositeDirection, initX, initY)) {
+			
+			//go back to the initial hit, and try the other direction
 			currentMove = getAdjacentCell2(oppositeDirection, initX, initY);
-			if (isCellEmpty(currentMove)) {	//if cell isn't marked hit, miss, or sunk
-				moveToMake = currentMove;		//make the move
-				nextMove.direction = oppositeDirection; //change directions
+			
+			//if cell isn't marked hit, miss, or sunk
+			if (isCellEmpty(currentMove)) {	
+
+				//make the move
+				moveToMake = currentMove;	
+
+				//change directions	
+				nextMove.direction = oppositeDirection; 
 				nextMove.status = 'continueDirection';
 			}
 		}
@@ -901,6 +1012,7 @@ function getMoveStage2() {
 			
 // ***** ***** Stage 2 HELPERS ***** ***** // 
 
+//determines if the cell has an adjacent cell
 function hasAdjacentCell(direction, x, y) {
 	if (direction === 'left' && x == 1) {
 		return false;
@@ -917,6 +1029,7 @@ function hasAdjacentCell(direction, x, y) {
 	return true;
 }
 
+//returns the adjacent cell in the given direction to the cell at given (x, y)
 function getAdjacentCell2(direction, x, y) {
 	x = parseInt(x);
 	y = parseInt(y);
@@ -933,6 +1046,7 @@ function getAdjacentCell2(direction, x, y) {
 	return cell;
 }
 
+//returns the direction a cell is from an initial hit cell
 function determineMoveDirection(moveCell, initX, initY) {
 	var direction;
 	var newX = moveCell.dataset.x;
@@ -950,6 +1064,7 @@ function determineMoveDirection(moveCell, initX, initY) {
 	return direction;
 }
 
+//returns a the next adjacent cell in a given direction
 function getNextMoveSameDirection(move, direction) {
 	var x = move.dataset.x;
 	var y = move.dataset.y;
@@ -958,6 +1073,7 @@ function getNextMoveSameDirection(move, direction) {
 	return newMove;
 }
 
+//returns boolean - is this the first hit on a ship
 function firstHitOnShip(shipNumberClass) {
 	var shipCells = document.getElementsByClassName(shipNumberClass);
 	for (var i = 0; i < shipCells.length; i++) {
@@ -967,8 +1083,10 @@ function firstHitOnShip(shipNumberClass) {
 	}
 	return true;
 }
+
 /************** GAME OVER **************/
 
+//returns boolean - is the game over
  function isGameWon() {
  	var playerWin;
  	if (areAllShipsSunk('player')) {
@@ -982,6 +1100,7 @@ function firstHitOnShip(shipNumberClass) {
  	} else return false;
  }
 
+ //returns boolean - have all the given user's ships been sunk
  function areAllShipsSunk(user) {
  	var numShipCellsSunk = 0;
  	if (user === 'computer') {
@@ -1012,9 +1131,7 @@ function gameOverCleanup(playerWin) {
 			var winnerMessage = 'All your ships have been sunk! You lose. Better luck next time!';
 		}
 		
-		//TRYING to turn off click handlers to make game be over
-		//but board still visible, not working atm
-		//may have to rethink
+		//turn off click handlers
 		getCellClickHandler('computer', 'remove');
 		getCellClickHandler('player', 'remove');
 
@@ -1040,6 +1157,7 @@ function gameOverCleanup(playerWin) {
 
 /***************   GENERAL HELPER FUNCTIONS      ***********************/
 
+//loops through every cell of the user and calls function on each cell
 function forEachCell(user, callback) {
 	for (var x = 1; x <= _gridSize; x++) {
 		for (var y = 1; y <= _gridSize; y++) {
@@ -1049,10 +1167,12 @@ function forEachCell(user, callback) {
 	}
 }
 
+//returns boolean - does the cell contain a class
 function cellContainsClass(cell, className) {
 	return (cell.classList.contains(className));
 }
 
+//returns boolean - is the cell empty (doesn't contain hit, miss, or sunk)
 function isCellEmpty(cell) {
 	if ((cell.classList.contains('hit')) || 
 	 	(cell.classList.contains('miss')) ||
@@ -1065,6 +1185,7 @@ function getRandomInt(min, max) {
 	return (Math.floor(Math.random() * (max - min + 1)) + min);
 }
 
+//returns the opposite direction of the direction passed in
 function getOppositeDirection(direction) {
 	var oppositeDirection;
 	if (direction === 'left') oppositeDirection = 'right';
@@ -1074,6 +1195,7 @@ function getOppositeDirection(direction) {
 	return oppositeDirection;
 }
 
+//displays instructions after ships have been placed
 function instructionBlock() {
 var instructionDiv = document.createElement('div');
 instructionDiv.setAttribute('id', 'instruct-block');
