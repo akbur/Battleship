@@ -646,7 +646,7 @@ function computerTurnClickHanders() {
 
 function computerFire() {
 	current.playerCell = determineTypeOfFire();
-	console.log('currentPlayerCell: (" + current.playerCell.dataset.x + ", " + current.playerCell.dataset.y + ")');
+	console.log('currentPlayerCell: (' + current.playerCell.dataset.x + ", " + current.playerCell.dataset.y + ')');
 	markPlayerCell();
 	playerTurn();
 }
