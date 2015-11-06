@@ -1,22 +1,21 @@
 
-/***** VARIABLES *****/
-//shouldn't have so many global variables that change
-var gridSize = 10;
-var numShipsPlaced = 0;
-var numberOfShips = 5;
-var shipDirection = 'horizontal';
-//FIX V
-var currentShipName, currentShipSize;
-var xCoordLimit = gridSize;
-var yCoordLimit = gridSize;
-var xCoord, yCoord;
-var gameOverAnnounced = false;
 
-current = {
+/***** VARIABLES *****/
+
+var _gridSize = 10;
+var _numberOfShips = 5;
+
+var current = {
 	playerCell: getCell('player', 1, 1),
 	compCell: getCell('computer', 1, 1),
 	shipSize: 0,
 	shipName: '',
+	shipDirection: 'horizontal',
+	numShipsPlaced: 0,
+	targetStatus: 'targetingRandomCell',
+	xCoord: 1, 
+	yCoord: 1,
+	gameOverAnnounced: false,
 }
 
 var lastMove = {
@@ -65,11 +64,13 @@ var nextMove = {
 	},
 	determineStage: function() {
 		if (this.stage === 1) {
-			if (compMove.stage1Plan.length === 0) {
+			if (nextMove.stage1Plan.length === 0) {
 				this.stage = 2;
 			}
 		}
 	},
+	stage1Plan: [],
+
 };
 
 var initialHit = {
@@ -120,8 +121,8 @@ function beginRounds() {
 function createGrid() {
 	var gridDiv = document.querySelectorAll('.grid-container');
 	for (var grid = 0; grid < gridDiv.length; grid++) {
-		for (var i = gridSize; i >= 1; i--) {
-			for (var j = 1; j <= gridSize; j++) {
+		for (var i = _gridSize; i >= 1; i--) {
+			for (var j = 1; j <= _gridSize; j++) {
 				var cell = document.createElement('div');
 				cell.setAttribute('class', 'grid-cell');
 				cell.setAttribute('data-x', j);
@@ -184,9 +185,9 @@ function getAdjacentCell(user) {
 	var x = parseInt(cell.dataset.x);
 	var y = parseInt(cell.dataset.y);
 	
-	if (shipDirection === "vertical") {
+	if (current.shipDirection === "vertical") {
 		y += 1;
-	} else if (shipDirection === "horizontal") {
+	} else if (current.shipDirection === "horizontal") {
 		x += 1;
 	}
 
@@ -199,7 +200,7 @@ function getAdjacentCell(user) {
 
 function addShipButtons() {
 	var shipButtonDiv = document.getElementById('ship-buttons');
-	for (var i = 0; i < numberOfShips; i++) {
+	for (var i = 0; i < _numberOfShips; i++) {
 		var shipButton = document.createElement('button');
 		shipButton.setAttribute('class', 'ship-button');
 		shipButtonDiv.appendChild(shipButton);
@@ -223,7 +224,7 @@ function setShipButtons() {
 }
 
 function getShipButton() {
-	var name = currentShipName;
+	var name = current.shipName;
 	var shipButtons = document.getElementsByClassName('ship-button');
 	for (var i = 0; i < shipButtons.length; i++) {
 		if (shipButtons[i].dataset.name === name.toLowerCase()) {
@@ -247,10 +248,10 @@ function addRotateButton() {
 }
 
 function rotateShip() {
-	if (shipDirection === "vertical") {
-		shipDirection = "horizontal";
-	} else if (shipDirection === "horizontal") {
-		shipDirection = "vertical";
+	if (current.shipDirection === "vertical") {
+		current.shipDirection = "horizontal";
+	} else if (current.shipDirection === "horizontal") {
+		current.shipDirection = "vertical";
 	}
 }
 
@@ -272,42 +273,46 @@ function computerShipPlacement() {
 
 function getLegalComputerCell(shipSize) {
 	var empty;
+	var coordLimit = {
+		x: _gridSize,
+		y: _gridSize,
+	}
 
 	do {
-		preventShipOverlap(shipSize);
-		generateCoordinates();
+		preventShipOverlap(shipSize, coordLimit);
+		generateCoordinates(coordLimit);
 		empty = doesCellContainComputerShip(shipSize);
 	} while (!empty);
 	
-	var cell = getCell('computer', xCoord, yCoord);
+	var cell = getCell('computer', current.xCoord, current.yCoord);
 	return cell;
 }
 
-function preventShipOverlap(shipSize) {
-	if (shipDirection === 'horizontal') {
-		xCoordLimit = gridSize - shipSize;
-	} else if (shipDirection === 'vertical') {
-		yCoordLimit = gridSize - shipSize;
+function preventShipOverlap(shipSize, coordLimit) {
+	if (current.shipDirection === 'horizontal') {
+		coordLimit.x = _gridSize - shipSize;
+	} else if (current.shipDirection === 'vertical') {
+		coordLimit.y = _gridSize - shipSize;
 	}
 }
 
-function generateCoordinates() {
-	xCoord = getRandomInt(1, xCoordLimit);
-	yCoord = getRandomInt(1, yCoordLimit);
+function generateCoordinates(coordLimit) {
+	current.xCoord = getRandomInt(1, coordLimit.x);
+	current.yCoord = getRandomInt(1, coordLimit.y);
 }
 
 function doesCellContainComputerShip(shipSize){
 	var numCellsEmpty = 0;
-	if (shipDirection === 'horizontal') {
-		for (var i = xCoord; i < shipSize + xCoord; i++) {
-			var compCell = getCell('computer', i, yCoord);
+	if (current.shipDirection === 'horizontal') {
+		for (var i = current.xCoord; i < shipSize + current.xCoord; i++) {
+			var compCell = getCell('computer', i, current.yCoord);
 			if (!cellContainsClass(compCell, 'compship')){
 				numCellsEmpty++;
 			}
 		}
-	} else if (shipDirection === 'vertical') {
-		for (var i = yCoord; i < shipSize + yCoord; i++) {
-			var compCell = getCell('computer', xCoord, i);
+	} else if (current.shipDirection === 'vertical') {
+		for (var i = current.yCoord; i < shipSize + current.yCoord; i++) {
+			var compCell = getCell('computer', current.xCoord, i);
 			if (!cellContainsClass(compCell, 'compship')){
 				numCellsEmpty++;
 			}
@@ -338,7 +343,7 @@ function computerPlaceShip(shipName) {
 	//Place ship in a legal space
 	current.compCell = getLegalComputerCell(shipSize);
 	cellHasComputerShip(current.compCell);
-	numShipsPlaced++;
+	current.numShipsPlaced++;
 	addShipNumberClass(current.compCell);
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("computer");
@@ -381,15 +386,15 @@ function addShipPlacementClickHandlers() {
 }
 
 function getShipFromClick() {
-	currentShipName = this.dataset.name;
-	currentShipSize = this.dataset.size;
+	current.shipName = this.dataset.name;
+	current.shipSize = this.dataset.size;
 }
 
 function statusPlayerPlaceShips() {
 	var x = this.dataset.x;
 	var y = this.dataset.y;
 	if (shipPlacementLegal(x, y)) {
-		numShipsPlaced++;
+		current.numShipsPlaced++;
 		playerPlaceShip();
 		removeShipButton();
 		endHoverEffect();
@@ -400,14 +405,14 @@ function statusPlayerPlaceShips() {
 function playerPlaceShip() {
 	cellHasPlayerShip(current.playerCell);
 	addShipNumberClass(current.playerCell);
-	var shipSize = currentShipSize;
+	var shipSize = current.shipSize;
 	for (var i = 1; i < shipSize; i++) {
 		markAdjacentCell("player");
 	}
 }
 
 function addShipNumberClass(cell) {
-	var shipNumberClass = " ship_number_" + numShipsPlaced;
+	var shipNumberClass = " ship_number_" + current.numShipsPlaced;
 	cell.className += shipNumberClass;
 }
 
@@ -433,12 +438,12 @@ function shipPlacementLegal(x, y) {
 }
 
 function withinBounds(x, y) {
-	if (shipDirection === 'horizontal') {
-		if (x <= gridSize - currentShipSize + 1) {
+	if (current.shipDirection === 'horizontal') {
+		if (x <= _gridSize - current.shipSize + 1) {
 			return true;
 		}
-	} else if (shipDirection === 'vertical') {
-		if (y <= gridSize - currentShipSize + 1) {
+	} else if (current.shipDirection === 'vertical') {
+		if (y <= _gridSize - current.shipSize + 1) {
 			return true;
 		}
 	} else return false;
@@ -451,13 +456,13 @@ function doesShipOverlap(x, y) {
 	//populate cells array with all ship cells
 	var cell = [];
 	cell[0] = getCell('player', x, y);
-	if (shipDirection === 'horizontal') {
-		for (var i = 1; i < currentShipSize; i++) {
+	if (current.shipDirection === 'horizontal') {
+		for (var i = 1; i < current.shipSize; i++) {
 			cell[i] = getAdjacentCell2('right', x, y);
 			x++
 		}
-	} else if (shipDirection === 'vertical') {
-		for (var i = 1; i < currentShipSize; i++) {
+	} else if (current.shipDirection === 'vertical') {
+		for (var i = 1; i < current.shipSize; i++) {
 			cell[i] = getAdjacentCell2('up', x, y);
 			y++
 		}
@@ -470,15 +475,15 @@ function doesShipOverlap(x, y) {
 		}
 	}
 
-	if (numCellsEmpty == currentShipSize) {
+	if (numCellsEmpty == current.shipSize) {
 		return false; // ship does NOT overlap another ship
 	} else return true;
 }
 
 
 function allPlayerShipsPlaced() {
-	//(numberOfShips*2) because counting computer ships and player ships
-	return (numShipsPlaced === (numberOfShips*2));
+	//(_numberOfShips*2) because counting computer ships and player ships
+	return (current.numShipsPlaced === (_numberOfShips*2));
 }
 
 //for removing click handlers after ship placement status has ended
@@ -512,14 +517,14 @@ function shipPlacementHover() {
 		var cell = [];
 		cell[0] = getCell('player', x, y);
 		cell[0].className += ' placeship';
-		if (shipDirection === 'horizontal') {
-			for (var i = 1; i < currentShipSize; i++) {
+		if (current.shipDirection === 'horizontal') {
+			for (var i = 1; i < current.shipSize; i++) {
 				cell[i] = getAdjacentCell2('right', x, y);
 				cell[i].className += ' placeship';
 				x++;
 			}	
-		} else if (shipDirection === 'vertical') {
-			for (var i = 1; i < currentShipSize; i++) {
+		} else if (current.shipDirection === 'vertical') {
+			for (var i = 1; i < current.shipSize; i++) {
 				cell[i] = getAdjacentCell2('up', x, y);
 				cell[i].className += ' placeship';
 				y++;
@@ -535,14 +540,14 @@ function removeShipHover() {
 		var cell = [];
 		cell[0] = getCell('player', x, y);
 		cell[0].classList.remove('placeship');
-		if (shipDirection === 'horizontal') {
-			for (var i = 1; i < currentShipSize; i++) {
+		if (current.shipDirection === 'horizontal') {
+			for (var i = 1; i < current.shipSize; i++) {
 				cell[i] = getAdjacentCell2('right', x, y);
 				cell[i].classList.remove('placeship');
 				x++;
 			}	
-		} else if (shipDirection === 'vertical') {
-			for (var i = 1; i < currentShipSize; i++) {
+		} else if (current.shipDirection === 'vertical') {
+			for (var i = 1; i < current.shipSize; i++) {
 				cell[i] = getAdjacentCell2('up', x, y);
 				cell[i].classList.remove('placeship');
 				y++;
@@ -619,7 +624,7 @@ function isShipSunk(numCellsHit, shipNumberClass) {
 //returns the ship number of the current ship cell
 function getShipNumberClass(cell) {
 	var shipNumberClass = '';
-	for (var i = 1; i <= numberOfShips * 2; i++) {
+	for (var i = 1; i <= _numberOfShips * 2; i++) {
 		shipNumberClass = ("ship_number_" + i);
 		if (cellContainsClass(cell, shipNumberClass)){
 			return shipNumberClass;
@@ -669,26 +674,26 @@ function determineTypeOfFire() {
 		//if there are other ships that have been hit and not sunk
 		//computer continues hitting specific cells
 		console.log('otherDamagedShip: ' + otherDamagedShip());
-		if (otherDamagedShip()) compMove.status = 'targetingSpecificCell';
+		if (otherDamagedShip()) current.targetStatus = 'targetingSpecificCell';
 		
 		//otherwise, change the status back to random
-		else compMove.status = "targetingRandomCell";
+		else current.targetStatus = "targetingRandomCell";
 	}
 
-	console.log("compMove.status: " + compMove.status);
+	console.log("current.targetStatus: " + current.targetStatus);
 	//then determine type of fire based on status
-	if (compMove.status === "targetingRandomCell") {
+	if (current.targetStatus === "targetingRandomCell") {
 		return targetPlayerCell("random");
 	
 	//marked as this after an initial hit on a ship
-	} else if (compMove.status === "targetingSpecificCell") {
+	} else if (current.targetStatus === "targetingSpecificCell") {
 		return targetPlayerCell("specific");
 	}
 }
 
 function getRandomPlayerCellCoords() {
-	xCoord = getRandomInt(1, gridSize);
-	yCoord = getRandomInt(1, gridSize);
+	current.xCoord = getRandomInt(1, _gridSize);
+	current.yCoord = getRandomInt(1, _gridSize);
 }
 
 function targetPlayerCell(type) {
@@ -698,17 +703,17 @@ function targetPlayerCell(type) {
 	if (type === 'random') {
 		do {
 			getRandomPlayerCellCoords();
-			cell = getCell('player', xCoord, yCoord);
+			cell = getCell('player', current.xCoord, current.yCoord);
 			alreadyMarked = !isCellEmpty(cell);
 		} while (alreadyMarked);
 
 	} else if (type === 'specific') {
 		getSpecificPlayerCoords();
-		cell = getCell('player', xCoord, yCoord);
+		cell = getCell('player', current.xCoord, current.yCoord);
 	}
 
-	lastMove.cellXCoord = xCoord;
-	lastMove.cellYCoord = yCoord;
+	lastMove.cellXCoord = current.xCoord;
+	lastMove.cellYCoord = current.yCoord;
 	lastMove.setCell(cell);
 
 	return cell;
@@ -728,7 +733,7 @@ function markPlayerCell() {
 			} else {
 				 if(firstHitOnShip(shipNumberClass)) {
 				 	initialHit.recordCoords(cell.dataset.x, cell.dataset.y);
-				 	compMove.status = 'targetingSpecificCell';
+				 	current.targetStatus = 'targetingSpecificCell';
 				 }
 				status = markCellHit(current.playerCell);
 			}
@@ -742,7 +747,7 @@ function markPlayerCell() {
 function getSpecificPlayerCoords() {
 	if (lastMove.cellSunk) {
 			console.log('that one sunk the ship');
-			compMove.status = "targetingRandomCell";
+			current.targetStatus = "targetingRandomCell";
 			this.stage = 0;
 			determineTypeOfFire();
 	} else {
@@ -758,34 +763,23 @@ function getSpecificPlayerCoords() {
 		
 		//set coords to make next move
 		var move = nextMove.getMove();
-		xCoord = move.dataset.x;
-		yCoord = move.dataset.y;
+		current.xCoord = move.dataset.x;
+		current.yCoord = move.dataset.y;
 		
 		nextMove.determineStage();
 
 		//DEBUG
-			console.log("nextMove: (" + xCoord + ", " + yCoord + ")");
+			console.log("nextMove: (" + current.xCoord + ", " + current.yCoord + ")");
 		//END DEBUG
 	}
 }
 
 /*************** FOR COMPUTER 'SMARTER' MOVES *********************/
 
-compMove = {
-	status: "targetingRandomCell", 	//only initially
-	stage1Plan: [],
-	printPlan: function() {
-		for (var i = 0; i < this.stage1Plan.length; i++) {
-			console.log('stage1Plan['+ i + ']: (' + this.stage1Plan[i].dataset.x + ',' + this.stage1Plan[i].dataset.y + ')');
-		}
-	},
-};
-
 function getNextMoveFromPlan() {
 	//set the next move to the first move on the plan
 	//and remove it from the plan
-	compMove.printPlan();
-	nextMove.setMove(compMove.stage1Plan.shift());
+	nextMove.setMove(nextMove.stage1Plan.shift());
 	}
 
 function createPlanStage1() {
@@ -801,7 +795,7 @@ function createPlanStage1() {
 		//get move
 		var currentMove = getMoveForPlan(initX, initY, moveOptions);
 		//add move to movePlan
-		compMove.stage1Plan.push(currentMove);
+		nextMove.stage1Plan.push(currentMove);
 		//test to see if the move hits
 		var doesMoveHit = cellContainsClass(currentMove, 'ship');
 		console.log("Does the move we added to the plan hit?: " + doesMoveHit);
@@ -1018,7 +1012,7 @@ function firstHitOnShip(shipNumberClass) {
  }
 
 function gameOverCleanup(playerWin) {
-	if (!gameOverAnnounced) {
+	if (!current.gameOverAnnounced) {
 		if (playerWin) {
 			var winnerMessage = "Congratulations! You win!";
 		} else if (!playerWin) {
@@ -1044,13 +1038,13 @@ function gameOverCleanup(playerWin) {
 		winnerDiv.appendChild(winnerPara);
 		document.body.appendChild(winnerDiv);
 	}
-	gameOverAnnounced = true;
+	current.gameOverAnnounced = true;
 }
 /***************   GENERAL HELPER FUNCTIONS      ***********************/
 
 function forEachCell(user, callback){
-	for (var x = 1; x <= gridSize; x++){
-		for (var y = 1; y <= gridSize; y++){
+	for (var x = 1; x <= _gridSize; x++){
+		for (var y = 1; y <= _gridSize; y++){
 				var cell = getCell(user, x, y);
 				callback(cell);
 		}
